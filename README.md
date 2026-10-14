@@ -15,6 +15,7 @@ and keep an eye on the sun, moon and sky.
 | Screen | What it does |
 |---|---|
 | **My Day** | Big clock, today's date, season, moon and sunrise/sunset. Add activity cards, tick them off, drag to reorder, move them to another day. Sky events show on the days they happen. |
+| **Months ahead** | A bird's-eye view of the next 6 months (up to 18): a small calendar for each month with sky events and your plans marked, plus a short list of highlights. Filter to just your plans or just the sky, and tap any day to plan it. Open it from My Day or Sky. |
 | **Timer** | Countdown with quick times (5, 10, 15, 25, 45 min), a big ring, a soft chime and a "Time's up!" message. Keeps running while you use the rest of the app. |
 | **Sky** | Moon phase, next full and new moon (with their names), sunrise, sunset and daylight for Somerset, how far through the season we are, a month calendar of sky events, and what's coming up. |
 | **Ideas** | Seasonal Somerset ideas, ideas from your own interests, and ideas for any day. One tap adds an idea to your day. |

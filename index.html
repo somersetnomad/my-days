@@ -58,6 +58,10 @@
         </button>
       </div>
 
+      <div class="ahead-row">
+        <button class="btn small ahead-btn" data-goto-months>🗓️ Months ahead</button>
+      </div>
+
       <ul class="sky-notes" id="day-sky-notes" aria-label="In the sky"></ul>
 
       <ul class="cards" id="card-list" aria-label="Plans"></ul>
@@ -118,7 +122,10 @@
 
     <!-- ===== Sky ===== -->
     <section class="view" id="view-sky" hidden aria-labelledby="sky-heading">
-      <h1 class="view-title" id="sky-heading">Sky over Somerset</h1>
+      <div class="title-row">
+        <h1 class="view-title" id="sky-heading">Sky over Somerset</h1>
+        <button class="btn small" data-goto-months>🗓️ Months ahead</button>
+      </div>
 
       <div class="sky-grid">
         <article class="panel moon-panel" id="moon-panel"></article>
@@ -144,6 +151,22 @@
         <h2 class="panel-title">Coming up</h2>
         <ul class="event-list" id="upcoming-list"></ul>
       </article>
+    </section>
+
+    <!-- ===== Months ahead ===== -->
+    <section class="view" id="view-months" hidden aria-labelledby="months-heading">
+      <button class="link-btn back-link" id="months-back">‹ Back</button>
+      <h1 class="view-title" id="months-heading">Months ahead</h1>
+      <p class="view-sub">Tap any day to plan it.</p>
+
+      <div class="seg" role="radiogroup" aria-label="What to show" id="months-filter">
+        <button class="seg-btn" role="radio" data-mfilter="all" aria-checked="true">Everything</button>
+        <button class="seg-btn" role="radio" data-mfilter="plans" aria-checked="false">My plans</button>
+        <button class="seg-btn" role="radio" data-mfilter="sky" aria-checked="false">Sky</button>
+      </div>
+
+      <div class="months" id="months-list"></div>
+      <button class="btn more-months" id="more-months">Show more months</button>
     </section>
 
     <!-- ===== Ideas ===== -->

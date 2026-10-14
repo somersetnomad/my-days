@@ -460,6 +460,49 @@ textarea { resize: vertical; min-height: 80px; }
 .idea .btn { align-self: flex-start; margin-top: auto; }
 .ideas-empty { text-align: center; color: var(--ink-2); padding: 20px; }
 
+/* ---------- Months ahead ---------- */
+.ahead-row { display: flex; justify-content: center; margin: -2px 0 12px; }
+.title-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin: 8px 0 14px; }
+.title-row .view-title { margin: 0; }
+.back-link { margin: 4px 0 0 -8px; text-decoration: none; font-size: 1.05rem; }
+
+.months { display: grid; gap: 14px; }
+@media (min-width: 680px) { .months { grid-template-columns: 1fr 1fr; } }
+.month-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 14px; }
+.month-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.month-head h2 { font-size: 1.15rem; }
+.chip-sm { font-size: .8rem; font-weight: 700; background: var(--bg-2); border-radius: 999px; padding: 3px 10px; white-space: nowrap; }
+
+.mini-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.mini-dow { text-align: center; font-size: .7rem; font-weight: 800; color: var(--ink-2); padding-bottom: 2px; }
+.mini-day {
+  border: 0; background: var(--bg); border-radius: 9px; min-height: 40px; padding: 2px 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1;
+  position: relative;
+}
+.mini-day .n { font-size: .82rem; font-weight: 700; }
+.mini-day .i { font-size: .72rem; min-height: .9em; }
+.mini-day.past { opacity: .4; }
+.mini-day.today { box-shadow: inset 0 0 0 2px var(--me); }
+.mini-day.has-plans { background: var(--me-soft); }
+.mini-day.has-plans::after {
+  content: ""; position: absolute; top: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background: var(--me);
+}
+
+.highlights { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 4px; }
+.hl {
+  display: grid; grid-template-columns: 4.2em 1.6em 1fr; align-items: center; gap: 4px;
+  padding: 6px 8px; border-radius: 10px; cursor: pointer; font-size: .92rem;
+}
+.hl:hover { background: var(--bg); }
+.hl.plan { background: var(--me-soft); }
+.hl.plan.done .hl-text { text-decoration: line-through; opacity: .65; }
+.hl-date { font-weight: 800; font-size: .8rem; color: var(--sky); }
+.hl-icon { text-align: center; }
+.hl-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.hl-more { color: var(--ink-2); font-size: .88rem; padding: 4px 8px; }
+.more-months { width: 100%; margin-top: 14px; }
+
 /* ---------- Toast ---------- */
 .toast {
   position: fixed; left: 50%; bottom: calc(var(--nav-h) + var(--safe-b) + 90px); z-index: 50;

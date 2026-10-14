@@ -101,6 +101,9 @@
     dayKey: today,
     calMonth: today.slice(0, 7),
     calSelected: today,
+    monthsCount: 6,
+    monthsFilter: 'all',
+    prevView: 'day',
     ideasMode: 'season',
     ideasCat: null,
     editingId: null,
@@ -712,6 +715,87 @@
     $('#cal-detail').innerHTML = html;
   }
 
+  /* ---------- Months ahead (bird's-eye view) ---------- */
+  function monthKeyAdd(monthKey, n) {
+    var p = monthKey.split('-');
+    return new Date(Date.UTC(+p[0], +p[1] - 1 + n, 1, 12)).toISOString().slice(0, 7);
+  }
+
+  function monthCardHTML(monthKey) {
+    var showSky = ui.monthsFilter !== 'plans';
+    var showPlans = ui.monthsFilter !== 'sky';
+    var p = monthKey.split('-');
+    var firstKey = monthKey + '-01';
+    var daysInMonth = new Date(Date.UTC(+p[0], +p[1], 0)).getUTCDate();
+    var lastKey = monthKey + '-' + (daysInMonth < 10 ? '0' : '') + daysInMonth;
+    var lead = (Sky.keyToUTCNoon(firstKey).getUTCDay() + 6) % 7;
+
+    var events = showSky ? Sky.eventsBetween(firstKey, lastKey) : [];
+    var byDay = {};
+    events.forEach(function (e) { (byDay[e.date] = byDay[e.date] || []).push(e); });
+
+    // Mini calendar
+    var grid = ['M', 'T', 'W', 'T', 'F', 'S', 'S'].map(function (d) {
+      return '<span class="mini-dow" aria-hidden="true">' + d + '</span>';
+    }).join('');
+    for (var b = 0; b < lead; b++) grid += '<span class="mini-blank" aria-hidden="true"></span>';
+
+    var highlights = [];
+    for (var d = 1; d <= daysInMonth; d++) {
+      var k = monthKey + '-' + (d < 10 ? '0' : '') + d;
+      var evs = byDay[k] || [];
+      var plans = showPlans ? plansFor(k) : [];
+      var past = k < today;
+      var icon = evs.length ? evs[0].icon : '';
+      var label = longDate(k) +
+        (evs.length ? ': ' + evs.map(function (e) { return e.title; }).join(', ') : '') +
+        (plans.length ? '. ' + plans.length + (plans.length === 1 ? ' plan' : ' plans') : '');
+      grid += '<button class="mini-day' + (k === today ? ' today' : '') + (past ? ' past' : '') +
+        (plans.length ? ' has-plans' : '') + '" data-day="' + k + '" aria-label="' + esc(label) + '">' +
+        '<span class="n">' + d + '</span><span class="i" aria-hidden="true">' + icon + '</span></button>';
+
+      if (!past) {
+        evs.forEach(function (e) {
+          if (e.type === 'new') return; // keep the list short; new moons still show in the Sky tab
+          highlights.push({ date: k, icon: e.icon, text: e.title, kind: 'sky' });
+        });
+        plans.forEach(function (c) {
+          highlights.push({ date: k, icon: c.emoji || '⭐', text: c.title, kind: 'plan', done: c.done });
+        });
+      }
+    }
+
+    var MAX = 7;
+    var list = highlights.slice(0, MAX).map(function (h) {
+      return '<li class="hl ' + h.kind + (h.done ? ' done' : '') + '" data-day="' + h.date + '" tabindex="0" role="button">' +
+        '<span class="hl-date">' + esc(Sky.fmtKey(h.date, { weekday: 'short', day: 'numeric' })) + '</span>' +
+        '<span class="hl-icon" aria-hidden="true">' + esc(h.icon) + '</span>' +
+        '<span class="hl-text">' + esc(h.text) + '</span></li>';
+    }).join('');
+    if (highlights.length > MAX) list += '<li class="hl-more">+ ' + (highlights.length - MAX) + ' more – tap a day to see</li>';
+    if (!highlights.length) {
+      list = '<li class="hl-more">' + (ui.monthsFilter === 'plans' ? 'Nothing planned yet. Plenty of room!' : 'A quiet month.') + '</li>';
+    }
+
+    var season = Sky.seasonInfo(Sky.keyToUTCNoon(monthKey + '-15'));
+    return '<article class="month-card">' +
+      '<div class="month-head"><h2>' + esc(Sky.fmtKey(firstKey, { month: 'long', year: 'numeric' })) + '</h2>' +
+      (season ? '<span class="chip-sm">' + season.emoji + ' ' + season.name + '</span>' : '') + '</div>' +
+      '<div class="mini-grid">' + grid + '</div>' +
+      '<ul class="highlights">' + list + '</ul></article>';
+  }
+
+  function renderMonths() {
+    $$('#months-filter .seg-btn').forEach(function (b) {
+      b.setAttribute('aria-checked', String(b.dataset.mfilter === ui.monthsFilter));
+    });
+    var start = today.slice(0, 7);
+    var html = '';
+    for (var i = 0; i < ui.monthsCount; i++) html += monthCardHTML(monthKeyAdd(start, i));
+    $('#months-list').innerHTML = html;
+    $('#more-months').hidden = ui.monthsCount >= 18;
+  }
+
   /* ---------- Ideas ---------- */
   function currentIdeas() {
     var season = Sky.seasonInfo(new Date());
@@ -793,14 +877,16 @@
 
   /* ---------- Views ---------- */
   function showView(name) {
+    if (name === 'months' && ui.view !== 'months') ui.prevView = ui.view;
     ui.view = name;
-    ['day', 'timer', 'sky', 'ideas'].forEach(function (v) { $('#view-' + v).hidden = v !== name; });
+    ['day', 'timer', 'sky', 'ideas', 'months'].forEach(function (v) { $('#view-' + v).hidden = v !== name; });
     $$('.nav-btn').forEach(function (b) {
       if (b.dataset.view === name) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
     });
     if (name === 'day') renderDay();
     if (name === 'sky') renderSky();
     if (name === 'ideas') renderIdeas();
+    if (name === 'months') renderMonths();
     renderTimer(Timer.state());
     window.scrollTo(0, 0);
   }
@@ -810,6 +896,7 @@
     if (ui.view === 'day') renderDay();
     if (ui.view === 'sky') renderSky();
     if (ui.view === 'ideas') renderIdeas();
+    if (ui.view === 'months') renderMonths();
   }
 
   /* ---------- Wiring ---------- */
@@ -1025,6 +1112,32 @@
       if (!b) return;
       ui.dayKey = b.dataset.planDay;
       showView('day');
+    });
+
+    // Months ahead
+    document.addEventListener('click', function (e) {
+      if (e.target.closest('[data-goto-months]')) showView('months');
+    });
+    $('#months-back').addEventListener('click', function () { showView(ui.prevView || 'day'); });
+    $('#months-filter').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-mfilter]');
+      if (!b) return;
+      ui.monthsFilter = b.dataset.mfilter;
+      renderMonths();
+    });
+    $('#more-months').addEventListener('click', function () {
+      ui.monthsCount = Math.min(18, ui.monthsCount + 6);
+      renderMonths();
+    });
+    function openDayFromMonths(e) {
+      var t = e.target.closest('[data-day]');
+      if (!t) return;
+      ui.dayKey = t.dataset.day;
+      showView('day');
+    }
+    $('#months-list').addEventListener('click', openDayFromMonths);
+    $('#months-list').addEventListener('keydown', function (e) {
+      if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.hl[data-day]')) { e.preventDefault(); openDayFromMonths(e); }
     });
 
     // Ideas
