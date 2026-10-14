@@ -6,6 +6,8 @@
   'use strict';
 
   var KEY = 'somerset-day-planner-v1';
+  var APP_VERSION = '7';
+  var swReg = null;
   var COLOURS = ['#3b7656', '#47769f', '#c97e1f', '#a55a8a', '#7a5fb0', '#c0563f', '#2f8f8a', '#8a7a2c'];
   var AVATARS = ['🦊', '🦉', '🐝', '🐞', '🦔', '🐴', '🐸', '🦋', '🐢', '🐬', '🐱', '🐶', '🦕', '🐉', '🌻', '🚀', '⚽', '🎸'];
   var CARD_EMOJIS = ['⭐', '🌿', '🎨', '🔨', '📚', '🧁', '🚲', '🐴', '🐕', '💻', '🎵', '⚽', '🧩', '🌳',
@@ -545,6 +547,7 @@
       b.setAttribute('aria-checked', String(b.dataset.themeChoice === (state.settings.theme || 'auto')));
     });
     $('#calm-motion').checked = !!state.settings.calm;
+    $('#app-version').textContent = 'Version ' + APP_VERSION;
   }
 
   function exportPlans() {
@@ -1212,6 +1215,11 @@
       state.settings.calm = this.checked; save(); applyTheme();
     });
     $('#export-btn').addEventListener('click', exportPlans);
+    $('#update-btn').addEventListener('click', function () {
+      toast('Checking for updates…');
+      var done = function () { location.reload(); };
+      if (swReg) swReg.update().then(function () { setTimeout(done, 800); }, done); else done();
+    });
     $('#import-file').addEventListener('change', function () {
       if (this.files && this.files[0]) importPlans(this.files[0]);
       this.value = '';
@@ -1353,7 +1361,22 @@
     if (state.profiles.length === 0) openPersonDialog(null);
 
     if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-      navigator.serviceWorker.register('sw.js').catch(function () { /* offline mode unavailable */ });
+      // When a newer version is published, switch to it straight away (once per update).
+      var hadController = !!navigator.serviceWorker.controller;
+      var reloading = false;
+      navigator.serviceWorker.addEventListener('controllerchange', function () {
+        if (!hadController || reloading) return;
+        reloading = true;
+        location.reload();
+      });
+      navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(function (reg) {
+        swReg = reg;
+        reg.update();
+        // Check again whenever the app is brought back to the screen
+        document.addEventListener('visibilitychange', function () {
+          if (document.visibilityState === 'visible') reg.update();
+        });
+      }).catch(function () { /* offline mode unavailable */ });
     }
   }
 

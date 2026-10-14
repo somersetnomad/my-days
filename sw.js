@@ -3,7 +3,7 @@
   When you change any file, bump the version number below AND the
   ?v= numbers in index.html, so everyone's device picks up the new copy.
 */
-var VERSION = 'my-days-v6';
+var VERSION = 'my-days-v7';
 var FILES = [
   './',
   'index.html',

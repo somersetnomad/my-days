@@ -95,8 +95,11 @@ then **Commit changes**. The site updates a minute or so later.
 
 **After any change, bump the version numbers** so everyone's device fetches the new version
 instead of an old saved copy:
-1. In `sw.js`, change the version at the top (for example `my-days-v5` → `my-days-v6`).
-2. In `index.html`, change every `?v=5` to `?v=6` (use Find & Replace).
+1. In `sw.js`, change the version at the top (for example `my-days-v7` → `my-days-v8`).
+2. In `index.html`, change every `?v=7` to `?v=8` (use Find & Replace).
+3. In `js/app.js`, change `APP_VERSION` near the top to match – it shows in Settings.
+
+People's devices then switch to the new version by themselves the next time they open the app.
 
 | I want to… | Edit this file |
 |---|---|
