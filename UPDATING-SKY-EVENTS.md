@@ -23,7 +23,7 @@ They live in `data/sky-events.js`. The file currently covers **October 2026 to t
    - `date` is `YEAR-MONTH-DAY`. For meteor showers, use the **evening** the best night begins.
    - `type` is one of `meteor`, `eclipse`, `planet` or `other` (this picks the little picture).
    - Keep a comma at the end of every line except the last one before `];`.
-3. Save (**Commit changes**), then bump the version in `sw.js` (e.g. `my-days-v2` → `my-days-v3`).
+3. Save (**Commit changes**), then bump the version numbers in `sw.js` and `index.html` (see the README).
 
 ## The main yearly meteor showers (roughly the same dates every year)
 

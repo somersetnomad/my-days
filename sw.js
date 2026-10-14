@@ -1,9 +1,9 @@
 /*
   Lets the app work offline after the first visit.
-  When you change any file, bump the version number below so
-  everyone's device picks up the new copy.
+  When you change any file, bump the version number below AND the
+  ?v= numbers in index.html, so everyone's device picks up the new copy.
 */
-var VERSION = 'my-days-v4';
+var VERSION = 'my-days-v5';
 var FILES = [
   './',
   'index.html',

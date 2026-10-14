@@ -92,9 +92,10 @@ Browsers only allow sound after you've tapped something, so the chime works once
 You can edit any file directly on GitHub: open the file, click the pencil icon, make the change,
 then **Commit changes**. The site updates a minute or so later.
 
-**After any change, also open `sw.js` and bump the version number** at the top
-(for example `my-days-v1` → `my-days-v2`). This makes everyone's device fetch the new version
-instead of the saved offline copy.
+**After any change, bump the version numbers** so everyone's device fetches the new version
+instead of an old saved copy:
+1. In `sw.js`, change the version at the top (for example `my-days-v5` → `my-days-v6`).
+2. In `index.html`, change every `?v=5` to `?v=6` (use Find & Replace).
 
 | I want to… | Edit this file |
 |---|---|
