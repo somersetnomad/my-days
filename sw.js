@@ -3,7 +3,7 @@
   When you change any file, bump the version number below so
   everyone's device picks up the new copy.
 */
-var VERSION = 'my-days-v2';
+var VERSION = 'my-days-v3';
 var FILES = [
   './',
   'index.html',
@@ -13,6 +13,7 @@ var FILES = [
   'data/sky-events.js',
   'js/sky.js',
   'js/ideas.js',
+  'js/nature.js',
   'js/timer.js',
   'js/app.js',
   'icons/icon.svg',

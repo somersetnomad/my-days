@@ -29,7 +29,7 @@
 
   /* ---------- Saved data ---------- */
   function fresh() {
-    return { version: 1, profiles: [], activeId: null, plans: {}, settings: { theme: 'auto', sound: true, calm: false } };
+    return { version: 1, profiles: [], activeId: null, plans: {}, spotted: {}, settings: { theme: 'auto', sound: true, calm: false } };
   }
 
   function migrate(d) {
@@ -45,6 +45,7 @@
       });
     }
     if (d.plans && typeof d.plans === 'object') s.plans = d.plans;
+    if (d.spotted && typeof d.spotted === 'object') s.spotted = d.spotted;
     if (d.settings) Object.assign(s.settings, d.settings);
     s.activeId = d.activeId;
     if (!s.profiles.some(function (p) { return p.id === s.activeId; })) {
@@ -101,6 +102,8 @@
     dayKey: today,
     calMonth: today.slice(0, 7),
     calSelected: today,
+    natureTab: 'birds',
+    natureMonth: +today.slice(5, 7),
     monthsCount: 6,
     monthsFilter: 'all',
     prevView: 'day',
@@ -516,6 +519,7 @@
     var id = ui.personId;
     state.profiles = state.profiles.filter(function (p) { return p.id !== id; });
     delete state.plans[id];
+    if (state.spotted) delete state.spotted[id];
     if (state.activeId === id) state.activeId = state.profiles[0] ? state.profiles[0].id : null;
     save();
     $('#person-dialog').close();
@@ -796,6 +800,108 @@
     $('#more-months').hidden = ui.monthsCount >= 18;
   }
 
+  /* ---------- Nature: birds & foraging ---------- */
+  var MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
+    'August', 'September', 'October', 'November', 'December'];
+  var HOW = {
+    special: { label: '⭐ Somerset special', cls: 'special' },
+    see: { label: '👀 Easy to spot', cls: 'see' },
+    listen: { label: '👂 Listen for', cls: 'listen' }
+  };
+
+  function mySpotted() {
+    var p = me();
+    if (!p) return {};
+    state.spotted = state.spotted || {};
+    state.spotted[p.id] = state.spotted[p.id] || {};
+    return state.spotted[p.id];
+  }
+
+  function birdCardHTML(b) {
+    var seen = mySpotted()[b.id];
+    var how = HOW[b.how] || HOW.see;
+    return '<li class="nat-card">' +
+      '<div class="nat-head"><span class="nat-emoji" aria-hidden="true">' + b.emoji + '</span>' +
+        '<div><h2 class="nat-name">' + esc(b.name) + '</h2><span class="badge ' + how.cls + '">' + how.label + '</span></div></div>' +
+      '<p class="nat-line"><span aria-hidden="true">📍</span> ' + esc(b.where) + '</p>' +
+      '<p class="nat-line"><span aria-hidden="true">' + (b.how === 'listen' ? '👂' : '👀') + '</span> ' + esc(b.look) + '</p>' +
+      '<p class="nat-fact"><span aria-hidden="true">💡</span> ' + esc(b.fact) + '</p>' +
+      '<div class="nat-actions">' +
+        '<button class="btn small seen-btn" data-seen="' + b.id + '" aria-pressed="' + !!seen + '">' +
+          (seen ? '✓ Spotted ' + esc(Sky.fmtKey(seen, { day: 'numeric', month: 'short' })) : (b.how === 'listen' ? 'I heard one!' : 'I saw one!')) + '</button>' +
+        '<button class="btn small" data-nat-add="bird:' + b.id + '">+ Plan a trip</button>' +
+      '</div></li>';
+  }
+
+  function forageCardHTML(f) {
+    var badges = '';
+    if (f.lookOnly) badges += '<span class="badge listen">👀 Look only</span>';
+    if (f.grownup) badges += '<span class="badge grownup">🧑‍🤝‍🧑 Only with a grown-up</span>';
+    return '<li class="nat-card">' +
+      '<div class="nat-head"><span class="nat-emoji" aria-hidden="true">' + f.emoji + '</span>' +
+        '<div><h2 class="nat-name">' + esc(f.name) + '</h2>' + badges + '</div></div>' +
+      '<p class="nat-line"><span aria-hidden="true">📍</span> ' + esc(f.where) + '</p>' +
+      '<p class="nat-line"><span aria-hidden="true">🔎</span> ' + esc(f.look) + '</p>' +
+      '<p class="nat-line"><span aria-hidden="true">' + (f.lookOnly ? '📓' : '🍳') + '</span> ' + esc(f.use) + '</p>' +
+      '<p class="nat-warn"><span aria-hidden="true">⚠️</span> ' + esc(f.warn) + '</p>' +
+      '<div class="nat-actions"><button class="btn small" data-nat-add="forage:' + f.id + '">+ Add to my day</button></div>' +
+      '</li>';
+  }
+
+  function renderNature() {
+    var m = ui.natureMonth;
+    var nowMonth = +today.slice(5, 7);
+    $('#nature-month').textContent = MONTH_NAMES[m - 1];
+    $('#nature-month-sub').textContent = m === nowMonth ? 'What’s about in Somerset now' : 'Planning ahead';
+    $$('.seg-btn[data-nature]').forEach(function (b) { b.setAttribute('aria-selected', String(b.dataset.nature === ui.natureTab)); });
+
+    var top = '', items = '';
+    if (ui.natureTab === 'birds') {
+      var birds = Nature.BIRDS.filter(function (b) { return b.months.indexOf(m) >= 0; });
+      var order = { special: 0, see: 1, listen: 2 };
+      birds.sort(function (a, b) { return order[a.how] - order[b.how]; });
+      var count = Object.keys(mySpotted()).length;
+      var p = me();
+      top = '<div class="nat-summary"><span class="nat-summary-num">' + count + '</span><div><strong>' +
+        (count === 1 ? 'bird spotted' : 'birds spotted') + (p ? ' by ' + esc(p.name) : '') + '</strong>' +
+        '<span>' + (count ? 'Lovely! Keep your eyes and ears open.' : 'Tap “I saw one!” when you spot a bird.') + '</span></div></div>' +
+        '<p class="nat-tip">Tip: a pair of binoculars and a quiet, slow walk help a lot. Early morning and dusk are the busiest times.</p>';
+      items = birds.map(birdCardHTML).join('');
+    } else {
+      top = '<details class="rules" open><summary>🧺 Forager’s rules – read these first</summary><ul>' +
+        Nature.RULES.map(function (r) { return '<li><span aria-hidden="true">' + r.icon + '</span> ' + esc(r.text) + '</li>'; }).join('') +
+        '</ul></details>';
+      var finds = Nature.FORAGE.filter(function (f) { return f.months.indexOf(m) >= 0; });
+      items = finds.length ? finds.map(forageCardHTML).join('')
+        : '<li class="ideas-empty">Not much to pick in ' + MONTH_NAMES[m - 1] + '. A brilliant month for bird watching instead!</li>';
+    }
+    $('#nature-top').innerHTML = top;
+    $('#nature-list').innerHTML = items;
+  }
+
+  function toggleSeen(id) {
+    var s = mySpotted();
+    if (s[id]) delete s[id]; else s[id] = today;
+    save();
+    renderNature();
+    if (s[id]) toast('Brilliant spot! ✓');
+  }
+
+  function addNatureToDay(ref) {
+    var parts = ref.split(':'), kind = parts[0], id = parts[1];
+    var src = kind === 'bird' ? Nature.BIRDS : Nature.FORAGE;
+    var item = null;
+    src.forEach(function (x) { if (x.id === id) item = x; });
+    if (!item || !me()) return;
+    var card = kind === 'bird'
+      ? { title: 'Look for ' + item.name.toLowerCase().replace(/^common /, ''), emoji: item.emoji === '🪶' ? '🐦' : item.emoji, notes: '📍 ' + item.where }
+      : { title: item.lookOnly ? item.name.replace(' (look only)', '') : 'Forage for ' + item.name.toLowerCase(), emoji: item.emoji, notes: '⚠️ ' + item.warn };
+    var list = plansFor(ui.dayKey);
+    list.push({ id: uid(), title: card.title, emoji: card.emoji, cat: 'outdoors', tags: [], time: '', notes: card.notes, done: false });
+    setPlans(ui.dayKey, list);
+    toast('Added to ' + (ui.dayKey === today ? 'today' : shortDate(ui.dayKey)) + ' ✓', 'See it', function () { showView('day'); });
+  }
+
   /* ---------- Ideas ---------- */
   function currentIdeas() {
     var season = Sky.seasonInfo(new Date());
@@ -879,7 +985,7 @@
   function showView(name) {
     if (name === 'months' && ui.view !== 'months') ui.prevView = ui.view;
     ui.view = name;
-    ['day', 'timer', 'sky', 'ideas', 'months'].forEach(function (v) { $('#view-' + v).hidden = v !== name; });
+    ['day', 'timer', 'sky', 'nature', 'ideas', 'months'].forEach(function (v) { $('#view-' + v).hidden = v !== name; });
     $$('.nav-btn').forEach(function (b) {
       if (b.dataset.view === name) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
     });
@@ -887,6 +993,7 @@
     if (name === 'sky') renderSky();
     if (name === 'ideas') renderIdeas();
     if (name === 'months') renderMonths();
+    if (name === 'nature') renderNature();
     renderTimer(Timer.state());
     window.scrollTo(0, 0);
   }
@@ -897,6 +1004,7 @@
     if (ui.view === 'sky') renderSky();
     if (ui.view === 'ideas') renderIdeas();
     if (ui.view === 'months') renderMonths();
+    if (ui.view === 'nature') renderNature();
   }
 
   /* ---------- Wiring ---------- */
@@ -1112,6 +1220,19 @@
       if (!b) return;
       ui.dayKey = b.dataset.planDay;
       showView('day');
+    });
+
+    // Nature
+    $$('.seg-btn[data-nature]').forEach(function (b) {
+      b.addEventListener('click', function () { ui.natureTab = b.dataset.nature; renderNature(); });
+    });
+    $('#nature-prev').addEventListener('click', function () { ui.natureMonth = ui.natureMonth === 1 ? 12 : ui.natureMonth - 1; renderNature(); });
+    $('#nature-next').addEventListener('click', function () { ui.natureMonth = ui.natureMonth === 12 ? 1 : ui.natureMonth + 1; renderNature(); });
+    $('#nature-list').addEventListener('click', function (e) {
+      var s = e.target.closest('[data-seen]');
+      if (s) { toggleSeen(s.dataset.seen); return; }
+      var a = e.target.closest('[data-nat-add]');
+      if (a) addNatureToDay(a.dataset.natAdd);
     });
 
     // Months ahead

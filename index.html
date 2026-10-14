@@ -169,6 +169,32 @@
       <button class="btn more-months" id="more-months">Show more months</button>
     </section>
 
+    <!-- ===== Nature: birds & foraging ===== -->
+    <section class="view" id="view-nature" hidden aria-labelledby="nature-heading">
+      <h1 class="view-title" id="nature-heading">Nature</h1>
+
+      <div class="seg" role="tablist" aria-label="Birds or foraging">
+        <button role="tab" class="seg-btn" data-nature="birds" aria-selected="true">🐦 Birds</button>
+        <button role="tab" class="seg-btn" data-nature="forage" aria-selected="false">🧺 Foraging</button>
+      </div>
+
+      <div class="month-switch">
+        <button class="round-btn small" id="nature-prev" aria-label="Previous month">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+        </button>
+        <div class="month-switch-label">
+          <strong id="nature-month">October</strong>
+          <span id="nature-month-sub">What’s about in Somerset</span>
+        </div>
+        <button class="round-btn small" id="nature-next" aria-label="Next month">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+        </button>
+      </div>
+
+      <div id="nature-top"></div>
+      <ul class="nature-list" id="nature-list"></ul>
+    </section>
+
     <!-- ===== Ideas ===== -->
     <section class="view" id="view-ideas" hidden aria-labelledby="ideas-heading">
       <h1 class="view-title" id="ideas-heading">Ideas</h1>
@@ -198,6 +224,9 @@
     </button>
     <button class="nav-btn" data-view="sky">
       <span class="nav-icon" aria-hidden="true">🌙</span><span>Sky</span>
+    </button>
+    <button class="nav-btn" data-view="nature">
+      <span class="nav-icon" aria-hidden="true">🌿</span><span>Nature</span>
     </button>
     <button class="nav-btn" data-view="ideas">
       <span class="nav-icon" aria-hidden="true">💡</span><span>Ideas</span>
@@ -372,6 +401,7 @@
   <script src="data/sky-events.js"></script>
   <script src="js/sky.js"></script>
   <script src="js/ideas.js"></script>
+  <script src="js/nature.js"></script>
   <script src="js/timer.js"></script>
   <script src="js/app.js"></script>
 </body>
