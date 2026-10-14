@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>My Days · Somerset</title>
+  <meta name="description" content="A calm daily planner for curious young people and their families in Somerset.">
+  <meta name="theme-color" content="#f6f1e6" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#141a2c" media="(prefers-color-scheme: dark)">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <!-- ===== Top bar ===== -->
+  <header class="topbar">
+    <button class="who" id="who-btn" aria-haspopup="menu" aria-expanded="false">
+      <span class="who-avatar" id="who-avatar" aria-hidden="true">🙂</span>
+      <span class="who-name" id="who-name">Me</span>
+      <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+    </button>
+    <div class="who-menu" id="who-menu" role="menu" hidden></div>
+
+    <div class="topbar-right">
+      <button class="timer-pill" id="timer-pill" hidden aria-label="Timer running – open timer">
+        <span aria-hidden="true">⏳</span> <span id="timer-pill-text">0:00</span>
+      </button>
+      <span class="mini-clock" id="mini-clock" aria-hidden="true">--:--</span>
+      <button class="icon-btn" id="settings-btn" aria-label="Settings">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main id="main" tabindex="-1">
+
+    <!-- ===== My Day ===== -->
+    <section class="view" id="view-day" aria-labelledby="day-heading">
+      <div class="hero">
+        <div class="hero-clock" id="hero-clock" aria-live="off">--:--</div>
+        <div class="hero-date" id="hero-date"></div>
+        <div class="chips" id="hero-chips"></div>
+      </div>
+
+      <div class="day-nav">
+        <button class="round-btn" id="prev-day" aria-label="Previous day">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+        </button>
+        <div class="day-nav-label">
+          <h1 id="day-heading">Today</h1>
+          <button class="link-btn" id="back-today" hidden>Back to today</button>
+        </div>
+        <button class="round-btn" id="next-day" aria-label="Next day">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+        </button>
+      </div>
+
+      <ul class="sky-notes" id="day-sky-notes" aria-label="In the sky"></ul>
+
+      <ul class="cards" id="card-list" aria-label="Plans"></ul>
+
+      <div class="empty" id="day-empty" hidden>
+        <div class="empty-emoji" aria-hidden="true">🌤️</div>
+        <p class="empty-title">Nothing planned yet</p>
+        <p class="empty-sub">What sounds fun?</p>
+        <div class="empty-actions">
+          <button class="btn btn-primary" data-action="add">Add something</button>
+          <button class="btn" data-action="goto-ideas">Get an idea</button>
+        </div>
+      </div>
+
+      <button class="fab" id="add-btn" aria-label="Add something to this day">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+        <span>Add</span>
+      </button>
+    </section>
+
+    <!-- ===== Timer ===== -->
+    <section class="view" id="view-timer" hidden aria-labelledby="timer-heading">
+      <h1 class="view-title" id="timer-heading">Timer</h1>
+
+      <div class="timer-face">
+        <svg class="timer-ring" viewBox="0 0 220 220" aria-hidden="true">
+          <circle class="ring-track" cx="110" cy="110" r="96"/>
+          <circle class="ring-fill" id="ring-fill" cx="110" cy="110" r="96"/>
+        </svg>
+        <div class="timer-centre">
+          <div class="timer-time" id="timer-time" role="timer" aria-live="off">10:00</div>
+          <div class="timer-adjust">
+            <button class="round-btn small" id="timer-minus" aria-label="One minute less">−1</button>
+            <button class="round-btn small" id="timer-plus" aria-label="One minute more">+1</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="presets" id="timer-presets" role="group" aria-label="Quick times">
+        <button class="chip-btn" data-min="5">5 min</button>
+        <button class="chip-btn" data-min="10">10 min</button>
+        <button class="chip-btn" data-min="15">15 min</button>
+        <button class="chip-btn" data-min="25">25 min</button>
+        <button class="chip-btn" data-min="45">45 min</button>
+      </div>
+
+      <div class="timer-controls">
+        <button class="btn btn-primary btn-big" id="timer-start">Start</button>
+        <button class="btn btn-big" id="timer-reset">Reset</button>
+      </div>
+
+      <label class="switch-row">
+        <input type="checkbox" id="timer-sound" checked>
+        <span class="switch" aria-hidden="true"></span>
+        <span>Soft chime when time’s up</span>
+      </label>
+    </section>
+
+    <!-- ===== Sky ===== -->
+    <section class="view" id="view-sky" hidden aria-labelledby="sky-heading">
+      <h1 class="view-title" id="sky-heading">Sky over Somerset</h1>
+
+      <div class="sky-grid">
+        <article class="panel moon-panel" id="moon-panel"></article>
+        <article class="panel" id="sun-panel"></article>
+        <article class="panel" id="season-panel"></article>
+      </div>
+
+      <article class="panel calendar-panel">
+        <div class="cal-head">
+          <button class="round-btn" id="cal-prev" aria-label="Previous month">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+          </button>
+          <h2 id="cal-title">Month</h2>
+          <button class="round-btn" id="cal-next" aria-label="Next month">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+          </button>
+        </div>
+        <div class="cal-grid" id="cal-grid" role="grid" aria-labelledby="cal-title"></div>
+        <div class="cal-detail" id="cal-detail" aria-live="polite"></div>
+      </article>
+
+      <article class="panel">
+        <h2 class="panel-title">Coming up</h2>
+        <ul class="event-list" id="upcoming-list"></ul>
+      </article>
+    </section>
+
+    <!-- ===== Ideas ===== -->
+    <section class="view" id="view-ideas" hidden aria-labelledby="ideas-heading">
+      <h1 class="view-title" id="ideas-heading">Ideas</h1>
+      <p class="view-sub" id="ideas-sub"></p>
+
+      <div class="seg" role="tablist" aria-label="Which ideas">
+        <button role="tab" class="seg-btn" data-ideas="season" aria-selected="true">This season</button>
+        <button role="tab" class="seg-btn" data-ideas="mine" aria-selected="false">My interests</button>
+        <button role="tab" class="seg-btn" data-ideas="any" aria-selected="false">Any time</button>
+      </div>
+
+      <div class="chips scroll-x" id="ideas-cats" role="group" aria-label="Kind of activity"></div>
+
+      <button class="btn surprise" id="surprise-btn">🎲 Surprise me</button>
+
+      <ul class="ideas" id="ideas-list"></ul>
+    </section>
+  </main>
+
+  <!-- ===== Bottom navigation ===== -->
+  <nav class="bottom-nav" aria-label="Main">
+    <button class="nav-btn" data-view="day" aria-current="page">
+      <span class="nav-icon" aria-hidden="true">📅</span><span>My Day</span>
+    </button>
+    <button class="nav-btn" data-view="timer">
+      <span class="nav-icon" aria-hidden="true">⏳</span><span>Timer</span>
+    </button>
+    <button class="nav-btn" data-view="sky">
+      <span class="nav-icon" aria-hidden="true">🌙</span><span>Sky</span>
+    </button>
+    <button class="nav-btn" data-view="ideas">
+      <span class="nav-icon" aria-hidden="true">💡</span><span>Ideas</span>
+    </button>
+  </nav>
+
+  <!-- ===== Add / edit dialog ===== -->
+  <dialog class="sheet" id="card-dialog" aria-labelledby="card-dialog-title">
+    <form method="dialog" id="card-form" novalidate>
+      <div class="sheet-head">
+        <h2 id="card-dialog-title">Add something</h2>
+        <button type="button" class="icon-btn" data-close aria-label="Close">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+
+      <label class="field">
+        <span class="field-label">What do you want to do?</span>
+        <input type="text" id="f-title" maxlength="80" autocomplete="off" placeholder="e.g. Ride my bike to the river">
+      </label>
+
+      <fieldset class="field">
+        <legend class="field-label">Pick a picture</legend>
+        <div class="emoji-row" id="f-emoji" role="radiogroup" aria-label="Picture"></div>
+      </fieldset>
+
+      <fieldset class="field">
+        <legend class="field-label">What kind? <span class="optional">(optional)</span></legend>
+        <div class="chips wrap" id="f-cat"></div>
+      </fieldset>
+
+      <fieldset class="field">
+        <legend class="field-label">My interests <span class="optional">(optional)</span></legend>
+        <div class="chips wrap" id="f-tags"></div>
+        <div class="add-tag">
+          <input type="text" id="f-newtag" maxlength="24" placeholder="Add an interest" aria-label="New interest">
+          <button type="button" class="btn small" id="f-addtag">Add</button>
+        </div>
+      </fieldset>
+
+      <details class="more" id="f-more">
+        <summary>Add a time or notes</summary>
+        <label class="field">
+          <span class="field-label">Time</span>
+          <input type="time" id="f-time">
+        </label>
+        <label class="field">
+          <span class="field-label">Notes</span>
+          <textarea id="f-notes" rows="3" maxlength="500"></textarea>
+        </label>
+      </details>
+
+      <div class="edit-only" id="f-edit-extras" hidden>
+        <div class="field">
+          <span class="field-label">Move to another day</span>
+          <div class="move-row">
+            <button type="button" class="btn small" id="f-move-tomorrow">Tomorrow</button>
+            <input type="date" id="f-move-date" aria-label="Choose a day">
+            <button type="button" class="btn small" id="f-move-go">Move</button>
+          </div>
+        </div>
+        <button type="button" class="link-btn quiet-danger" id="f-delete">Remove this</button>
+      </div>
+
+      <div class="sheet-actions">
+        <button type="button" class="btn" data-close>Cancel</button>
+        <button type="submit" class="btn btn-primary btn-big" id="f-save">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- ===== Person dialog (welcome + edit) ===== -->
+  <dialog class="sheet" id="person-dialog" aria-labelledby="person-dialog-title">
+    <form method="dialog" id="person-form" novalidate>
+      <div class="sheet-head">
+        <h2 id="person-dialog-title">Hello! Who’s planning?</h2>
+        <button type="button" class="icon-btn" data-close aria-label="Close" id="person-close">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+      <p class="sheet-intro" id="person-intro">Everything stays on this device. No accounts, no passwords.</p>
+
+      <label class="field">
+        <span class="field-label">Name</span>
+        <input type="text" id="p-name" maxlength="30" autocomplete="off" placeholder="Your name">
+      </label>
+
+      <fieldset class="field">
+        <legend class="field-label">Pick a picture</legend>
+        <div class="emoji-row wrap" id="p-avatar" role="radiogroup" aria-label="Picture"></div>
+      </fieldset>
+
+      <fieldset class="field">
+        <legend class="field-label">Pick a colour</legend>
+        <div class="colour-row" id="p-colour" role="radiogroup" aria-label="Colour"></div>
+      </fieldset>
+
+      <fieldset class="field">
+        <legend class="field-label">Things I love <span class="optional">(tap to choose, or add your own)</span></legend>
+        <div class="chips wrap" id="p-tags"></div>
+        <div class="add-tag">
+          <input type="text" id="p-newtag" maxlength="24" placeholder="Add your own" aria-label="New interest">
+          <button type="button" class="btn small" id="p-addtag">Add</button>
+        </div>
+      </fieldset>
+
+      <div class="sheet-actions">
+        <button type="button" class="link-btn quiet-danger" id="p-delete" hidden>Remove this person</button>
+        <button type="submit" class="btn btn-primary btn-big" id="p-save">Let’s go</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- ===== Settings dialog ===== -->
+  <dialog class="sheet" id="settings-dialog" aria-labelledby="settings-title">
+    <div class="sheet-head">
+      <h2 id="settings-title">Settings</h2>
+      <button type="button" class="icon-btn" data-close aria-label="Close">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+
+    <section class="set-section">
+      <h3>People</h3>
+      <ul class="people-list" id="people-list"></ul>
+      <button class="btn" id="add-person-btn">+ Add a person</button>
+    </section>
+
+    <section class="set-section">
+      <h3>Look</h3>
+      <div class="seg" role="radiogroup" aria-label="Colour scheme" id="theme-seg">
+        <button class="seg-btn" role="radio" data-theme-choice="auto">Auto</button>
+        <button class="seg-btn" role="radio" data-theme-choice="light">Light</button>
+        <button class="seg-btn" role="radio" data-theme-choice="dark">Dark</button>
+      </div>
+      <label class="switch-row">
+        <input type="checkbox" id="calm-motion">
+        <span class="switch" aria-hidden="true"></span>
+        <span>Less movement</span>
+      </label>
+    </section>
+
+    <section class="set-section">
+      <h3>Keep a copy</h3>
+      <p class="set-help">Your plans are saved in this browser only. Save a copy to keep them safe or to move them to another device.</p>
+      <div class="btn-row">
+        <button class="btn" id="export-btn">⬇️ Export my plans</button>
+        <label class="btn" for="import-file">⬆️ Import plans</label>
+        <input type="file" id="import-file" accept="application/json,.json" hidden>
+      </div>
+    </section>
+
+    <section class="set-section about">
+      <p>No accounts. No tracking. Nothing is sent anywhere.</p>
+      <p>Sun and moon times are for Somerset.</p>
+    </section>
+  </dialog>
+
+  <!-- ===== Time's up ===== -->
+  <dialog class="alarm" id="alarm-dialog" aria-labelledby="alarm-title">
+    <div class="alarm-emoji" aria-hidden="true">⏰</div>
+    <h2 id="alarm-title">Time’s up!</h2>
+    <div class="alarm-actions">
+      <button class="btn" id="alarm-more">+5 minutes</button>
+      <button class="btn btn-primary btn-big" id="alarm-ok">OK</button>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="js/lib/suncalc.js"></script>
+  <script src="data/sky-events.js"></script>
+  <script src="js/sky.js"></script>
+  <script src="js/ideas.js"></script>
+  <script src="js/timer.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
