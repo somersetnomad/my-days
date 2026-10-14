@@ -3,7 +3,7 @@
   When you change any file, bump the version number below so
   everyone's device picks up the new copy.
 */
-var VERSION = 'my-days-v3';
+var VERSION = 'my-days-v4';
 var FILES = [
   './',
   'index.html',
@@ -37,7 +37,7 @@ self.addEventListener('activate', function (e) {
 self.addEventListener('fetch', function (e) {
   if (e.request.method !== 'GET') return;
   e.respondWith(
-    fetch(e.request).then(function (res) {
+    fetch(e.request, { cache: 'no-cache' }).then(function (res) {
       if (res && res.ok && new URL(e.request.url).origin === location.origin) {
         var copy = res.clone();
         caches.open(VERSION).then(function (c) { c.put(e.request, copy); });

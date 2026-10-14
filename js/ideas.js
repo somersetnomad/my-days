@@ -84,9 +84,9 @@
 
   // Ideas built from a person's own interests
   var INTEREST_PROMPTS = [
-    { emoji: '🔍', pattern: 'Find out something new about {x}' },
-    { emoji: '🛠️', pattern: 'Make something to do with {x}' },
-    { emoji: '💬', pattern: 'Show someone what I love about {x}' }
+    { emoji: '🔍', label: 'Find out', pattern: 'Find out something new about {x}' },
+    { emoji: '🛠️', label: 'Make', pattern: 'Make something to do with {x}' },
+    { emoji: '💬', label: 'Share', pattern: 'Show someone what I love about {x}' }
   ];
 
   global.Ideas = { CATEGORIES: CATEGORIES, IDEAS: IDEAS, INTEREST_PROMPTS: INTEREST_PROMPTS };

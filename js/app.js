@@ -844,7 +844,7 @@
       '<p class="nat-line"><span aria-hidden="true">🔎</span> ' + esc(f.look) + '</p>' +
       '<p class="nat-line"><span aria-hidden="true">' + (f.lookOnly ? '📓' : '🍳') + '</span> ' + esc(f.use) + '</p>' +
       '<p class="nat-warn"><span aria-hidden="true">⚠️</span> ' + esc(f.warn) + '</p>' +
-      '<div class="nat-actions"><button class="btn small" data-nat-add="forage:' + f.id + '">+ Add to my day</button></div>' +
+      '<div class="nat-actions"><button class="btn small" data-nat-add="forage:' + f.id + '">+ Add</button></div>' +
       '</li>';
   }
 
@@ -875,6 +875,7 @@
       items = finds.length ? finds.map(forageCardHTML).join('')
         : '<li class="ideas-empty">Not much to pick in ' + MONTH_NAMES[m - 1] + '. A brilliant month for bird watching instead!</li>';
     }
+    $('#nature-target').innerHTML = targetDayHTML();
     $('#nature-top').innerHTML = top;
     $('#nature-list').innerHTML = items;
   }
@@ -902,6 +903,24 @@
     toast('Added to ' + (ui.dayKey === today ? 'today' : shortDate(ui.dayKey)) + ' ✓', 'See it', function () { showView('day'); });
   }
 
+  /* ---------- "Adding to" day picker (Ideas & Nature) ---------- */
+  function targetDayHTML() {
+    var tomorrow = Sky.addDays(today, 1);
+    var other = ui.dayKey !== today && ui.dayKey !== tomorrow;
+    return '<span class="target-label">Adding to:</span>' +
+      '<button class="chip-btn" data-target="' + today + '" aria-pressed="' + (ui.dayKey === today) + '">Today</button>' +
+      '<button class="chip-btn" data-target="' + tomorrow + '" aria-pressed="' + (ui.dayKey === tomorrow) + '">Tomorrow</button>' +
+      '<label class="chip-btn date-chip" aria-pressed="' + other + '">📅 ' +
+        (other ? esc(shortDate(ui.dayKey)) : 'Another day') +
+        '<input type="date" class="target-date" value="' + ui.dayKey + '" aria-label="Choose another day"></label>';
+  }
+  function setTargetDay(key) {
+    if (!key) return;
+    ui.dayKey = key;
+    if (ui.view === 'ideas') renderIdeas();
+    if (ui.view === 'nature') renderNature();
+  }
+
   /* ---------- Ideas ---------- */
   function currentIdeas() {
     var season = Sky.seasonInfo(new Date());
@@ -911,9 +930,7 @@
       var p = me();
       list = [];
       (p ? p.tags : []).forEach(function (tag) {
-        Ideas.INTEREST_PROMPTS.forEach(function (pr) {
-          list.push({ emoji: pr.emoji, title: pr.pattern.replace('{x}', tag), tags: [tag], note: '', cat: null });
-        });
+        list.push({ interest: tag, emoji: '💛', title: tag, tags: [tag], cat: null });
       });
     } else if (ui.ideasMode === 'season') {
       list = Ideas.IDEAS.filter(function (i) { return i.seasons && i.seasons.indexOf(sid) >= 0; });
@@ -940,7 +957,7 @@
       }).join('');
 
     shownIdeas = currentIdeas();
-    var target = ui.dayKey === today ? 'today' : shortDate(ui.dayKey);
+    $('#ideas-target').innerHTML = targetDayHTML();
     if (!shownIdeas.length) {
       $('#ideas-list').innerHTML = ui.ideasMode === 'mine'
         ? '<li class="ideas-empty">Add some things you love and ideas will appear here.<br><br><button class="btn" data-action="edit-me">Add my interests</button></li>'
@@ -950,18 +967,30 @@
     }
     $('#surprise-btn').hidden = false;
     $('#ideas-list').innerHTML = shownIdeas.map(function (i, n) {
+      if (i.interest) {
+        return '<li class="idea" data-idea="' + n + '"><div class="idea-top"><span class="idea-emoji" aria-hidden="true">💛</span><div>' +
+          '<div class="idea-title">' + esc(i.title.charAt(0).toUpperCase() + i.title.slice(1)) + '</div>' +
+          '<div class="idea-note">What would you like to do with it?</div></div></div>' +
+          '<div class="interest-actions">' + Ideas.INTEREST_PROMPTS.map(function (pr, k) {
+            return '<button class="btn small" data-add-interest="' + n + ':' + k + '">' + pr.emoji + ' ' + esc(pr.label) + '</button>';
+          }).join('') + '</div></li>';
+      }
       var cat = catById(i.cat);
       return '<li class="idea" data-idea="' + n + '"><div class="idea-top"><span class="idea-emoji" aria-hidden="true">' + i.emoji + '</span><div>' +
         '<div class="idea-title">' + esc(i.title) + '</div>' +
         (i.note ? '<div class="idea-note">' + esc(i.note) + '</div>' : '') +
         (cat ? '<div class="card-meta"><span class="meta">' + cat.emoji + ' ' + esc(cat.short) + '</span></div>' : '') +
-        '</div></div><button class="btn small" data-add-idea="' + n + '">+ Add to ' + esc(target) + '</button></li>';
+        '</div></div><button class="btn small" data-add-idea="' + n + '">+ Add</button></li>';
     }).join('');
   }
 
-  function addIdea(n) {
+  function addIdea(n, promptIndex) {
     var i = shownIdeas[n];
     if (!i || !me()) return;
+    if (i.interest) {
+      var pr = Ideas.INTEREST_PROMPTS[promptIndex || 0];
+      i = { title: pr.pattern.replace('{x}', i.interest), emoji: pr.emoji, cat: null, tags: [i.interest] };
+    }
     var list = plansFor(ui.dayKey);
     list.push({ id: uid(), title: i.title, emoji: i.emoji, cat: i.cat || null, tags: (i.tags || []).slice(), time: '', notes: '', done: false });
     setPlans(ui.dayKey, list);
@@ -976,7 +1005,7 @@
     if (el) {
       el.classList.add('highlight');
       el.scrollIntoView({ behavior: state.settings.calm ? 'auto' : 'smooth', block: 'center' });
-      var btn = $('[data-add-idea]', el);
+      var btn = $('[data-add-idea], [data-add-interest]', el);
       if (btn) btn.focus({ preventScroll: true });
     }
   }
@@ -1235,6 +1264,15 @@
       if (a) addNatureToDay(a.dataset.natAdd);
     });
 
+    // "Adding to" day picker
+    document.addEventListener('click', function (e) {
+      var t = e.target.closest('[data-target]');
+      if (t) setTargetDay(t.dataset.target);
+    });
+    document.addEventListener('change', function (e) {
+      if (e.target.classList.contains('target-date')) setTargetDay(e.target.value);
+    });
+
     // Months ahead
     document.addEventListener('click', function (e) {
       if (e.target.closest('[data-goto-months]')) showView('months');
@@ -1274,6 +1312,8 @@
     $('#ideas-list').addEventListener('click', function (e) {
       var b = e.target.closest('[data-add-idea]');
       if (b) addIdea(+b.dataset.addIdea);
+      var ib = e.target.closest('[data-add-interest]');
+      if (ib) { var parts = ib.dataset.addInterest.split(':'); addIdea(+parts[0], +parts[1]); }
       if (e.target.closest('[data-action="edit-me"]') && me()) openPersonDialog(me().id);
     });
     $('#surprise-btn').addEventListener('click', surprise);
