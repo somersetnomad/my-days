@@ -10,7 +10,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="stylesheet" href="css/styles.css?v=5">
+  <link rel="stylesheet" href="css/styles.css?v=6">
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to main content</a>
@@ -25,8 +25,8 @@
     <div class="who-menu" id="who-menu" role="menu" hidden></div>
 
     <div class="topbar-right">
-      <button class="timer-pill" id="timer-pill" hidden aria-label="Timer running – open timer">
-        <span aria-hidden="true">⏳</span> <span id="timer-pill-text">0:00</span>
+      <button class="timer-pill" id="timer-pill" aria-label="Timer">
+        <span aria-hidden="true">⏳</span><span id="timer-pill-text"></span>
       </button>
       <span class="mini-clock" id="mini-clock" aria-hidden="true">--:--</span>
       <button class="icon-btn" id="settings-btn" aria-label="Settings">
@@ -62,6 +62,7 @@
         <button class="btn small ahead-btn" data-goto-months>🗓️ Months ahead</button>
       </div>
 
+      <ul class="sky-notes home-notes" id="day-home-notes" aria-label="Today at home"></ul>
       <ul class="sky-notes" id="day-sky-notes" aria-label="In the sky"></ul>
 
       <ul class="cards" id="card-list" aria-label="Plans"></ul>
@@ -169,6 +170,13 @@
       <button class="btn more-months" id="more-months">Show more months</button>
     </section>
 
+    <!-- ===== Home: meals, self-care, clothes, health, birthdays ===== -->
+    <section class="view" id="view-home" hidden aria-labelledby="home-heading">
+      <h1 class="view-title" id="home-heading">Home</h1>
+      <div class="chips scroll-x" id="home-tabs" role="tablist" aria-label="Home sections"></div>
+      <div id="home-body"></div>
+    </section>
+
     <!-- ===== Nature: birds & foraging ===== -->
     <section class="view" id="view-nature" hidden aria-labelledby="nature-heading">
       <h1 class="view-title" id="nature-heading">Nature</h1>
@@ -222,8 +230,8 @@
     <button class="nav-btn" data-view="day" aria-current="page">
       <span class="nav-icon" aria-hidden="true">📅</span><span>My Day</span>
     </button>
-    <button class="nav-btn" data-view="timer">
-      <span class="nav-icon" aria-hidden="true">⏳</span><span>Timer</span>
+    <button class="nav-btn" data-view="home">
+      <span class="nav-icon" aria-hidden="true">🏡</span><span>Home</span>
     </button>
     <button class="nav-btn" data-view="sky">
       <span class="nav-icon" aria-hidden="true">🌙</span><span>Sky</span>
@@ -388,6 +396,24 @@
     </section>
   </dialog>
 
+  <!-- ===== Home dialog (meals, appointments, birthdays…) ===== -->
+  <dialog class="sheet" id="home-dialog" aria-labelledby="home-dialog-title">
+    <form method="dialog" id="home-form" novalidate>
+      <div class="sheet-head">
+        <h2 id="home-dialog-title">Add</h2>
+        <button type="button" class="icon-btn" data-close aria-label="Close">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+      <div id="home-dialog-body"></div>
+      <div class="sheet-actions">
+        <button type="button" class="link-btn quiet-danger" id="home-dialog-delete" hidden>Remove</button>
+        <button type="button" class="btn" data-close>Cancel</button>
+        <button type="submit" class="btn btn-primary btn-big">Save</button>
+      </div>
+    </form>
+  </dialog>
+
   <!-- ===== Time's up ===== -->
   <dialog class="alarm" id="alarm-dialog" aria-labelledby="alarm-title">
     <div class="alarm-emoji" aria-hidden="true">⏰</div>
@@ -400,12 +426,13 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="js/lib/suncalc.js?v=5"></script>
-  <script src="data/sky-events.js?v=5"></script>
-  <script src="js/sky.js?v=5"></script>
-  <script src="js/ideas.js?v=5"></script>
-  <script src="js/nature.js?v=5"></script>
-  <script src="js/timer.js?v=5"></script>
-  <script src="js/app.js?v=5"></script>
+  <script src="js/lib/suncalc.js?v=6"></script>
+  <script src="data/sky-events.js?v=6"></script>
+  <script src="js/sky.js?v=6"></script>
+  <script src="js/ideas.js?v=6"></script>
+  <script src="js/nature.js?v=6"></script>
+  <script src="js/home.js?v=6"></script>
+  <script src="js/timer.js?v=6"></script>
+  <script src="js/app.js?v=6"></script>
 </body>
 </html>

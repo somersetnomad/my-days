@@ -550,6 +550,117 @@ textarea { resize: vertical; min-height: 80px; }
 .date-chip input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; border: 0; min-height: 0; padding: 0; }
 .interest-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 
+/* ---------- Header timer button ---------- */
+.timer-pill { background: transparent; min-width: 48px; min-height: 48px; justify-content: center; font-size: 1.1rem; }
+.timer-pill:hover { background: var(--bg-2); }
+.timer-pill.running { background: var(--sun-soft); }
+.timer-pill.active { box-shadow: inset 0 0 0 2px var(--me); }
+
+/* ---------- Home ---------- */
+.tab-chip[aria-selected="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.panel-head .panel-title { margin-bottom: 0; }
+.panel > .panel-head { margin-bottom: 10px; }
+.season-food { background: var(--accent-soft); border-radius: 16px; padding: 10px 14px; margin: 0 0 14px; font-size: .95rem; }
+.privacy-note { background: var(--sky-soft); border-radius: 16px; padding: 10px 14px; margin: 0 0 14px; font-size: .95rem; font-weight: 600; }
+.home-notes li { background: var(--me-soft); }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+select {
+  width: 100%; min-height: 52px; padding: 10px 12px; border-radius: 14px; border: 2px solid var(--line);
+  background: var(--bg); font-size: 1.05rem;
+}
+.icon-btn.small { width: 40px; height: 40px; font-size: .95rem; color: var(--ink-2); }
+
+/* Meals */
+.meal-week { display: grid; gap: 8px; margin-bottom: 14px; }
+.meal-day {
+  display: grid; grid-template-columns: 52px 1fr; gap: 8px; align-items: stretch;
+  background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 8px; box-shadow: var(--shadow);
+}
+.meal-day.is-today { border-color: var(--me); box-shadow: 0 0 0 2px var(--me), var(--shadow); }
+.meal-day-name { display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 800; font-size: .85rem; color: var(--ink-2); }
+.meal-day-name span { font-size: 1.3rem; color: var(--ink); }
+.meal-slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.meal-slot {
+  border: 2px dashed var(--line); background: transparent; border-radius: 12px; min-height: 58px; padding: 6px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; text-align: center; font-size: .85rem; font-weight: 600;
+}
+.meal-slot.filled { border-style: solid; border-color: transparent; background: var(--sun-soft); }
+.slot-emoji { font-size: 1.1rem; }
+.slot-text { overflow-wrap: anywhere; line-height: 1.2; }
+.slot-empty { color: var(--ink-2); font-weight: 600; }
+.fav-chip { display: inline-flex; align-items: center; gap: 4px; background: var(--sun-soft); border-radius: 999px; padding: 4px 4px 4px 12px; font-weight: 600; }
+.fav-chip button { border: 0; background: none; width: 32px; height: 32px; border-radius: 50%; color: var(--ink-2); }
+
+/* Tick lists (shopping, clothes) */
+.tick-list { list-style: none; padding: 0; margin: 10px 0 0; display: grid; gap: 4px; }
+.tick-list li { display: flex; align-items: center; gap: 4px; border-radius: 12px; }
+.tick-list li:hover { background: var(--bg); }
+.tick-btn { border: 0; background: none; width: 48px; height: 48px; display: grid; place-items: center; flex: none; }
+.tick.small { width: 28px; height: 28px; border-radius: 50%; border: 3px solid var(--line); display: grid; place-items: center; }
+.tick.small svg { width: 16px; height: 16px; fill: none; stroke: transparent; stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
+.tick-list li.done .tick.small { background: var(--accent); border-color: var(--accent); }
+.tick-list li.done .tick.small svg { stroke: var(--accent-ink); }
+.tick-text { flex: 1; font-weight: 600; overflow-wrap: anywhere; }
+.tick-list li.done .tick-text { text-decoration: line-through; opacity: .55; }
+
+/* Self-care */
+.mood-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(64px, 1fr)); gap: 6px; }
+.mood-btn {
+  border: 2px solid var(--line); background: var(--bg); border-radius: 16px; padding: 8px 2px;
+  display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 1.8rem; line-height: 1;
+}
+.mood-btn small { font-size: .78rem; font-weight: 700; color: var(--ink-2); }
+.mood-btn[aria-checked="true"] { border-color: var(--me); background: var(--me-soft); }
+.mood-reply { margin: 12px 0 0; font-weight: 600; background: var(--me-soft); border-radius: 14px; padding: 10px 12px; }
+.sc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+.sc-btn {
+  border: 2px solid var(--line); background: var(--bg); border-radius: 16px; min-height: 64px; padding: 8px 10px;
+  display: flex; align-items: center; gap: 10px; text-align: left; font-weight: 700; font-size: .95rem;
+}
+.sc-btn.on { border-color: var(--accent); background: var(--accent-soft); }
+.sc-btn.on .sc-emoji { animation: pop .45s ease; }
+.sc-emoji { font-size: 1.6rem; line-height: 1; flex: none; }
+.sc-count { margin: 0 0 10px; font-weight: 700; color: var(--accent); }
+.breathe-panel { text-align: center; }
+.breathe { position: relative; height: 180px; display: grid; place-items: center; margin-bottom: 12px; }
+.breathe-circle {
+  position: absolute; width: 90px; height: 90px; border-radius: 50%;
+  background: radial-gradient(circle, var(--sky-soft), color-mix(in srgb, var(--sky) 45%, transparent));
+  transition: transform 4s ease-in-out;
+}
+.breathe-circle.in, .breathe-circle.hold { transform: scale(1.8); }
+.breathe-circle.out, .breathe-circle.rest { transform: scale(1); }
+.breathe-text { position: relative; font-weight: 800; font-size: 1.15rem; }
+
+/* Clothes */
+.size-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.size-field { display: flex; flex-direction: column; gap: 4px; font-weight: 700; font-size: .92rem; }
+.size-field input { min-height: 48px; }
+
+/* Health */
+.click-row { cursor: pointer; }
+.click-row:hover { box-shadow: inset 0 0 0 2px var(--line); }
+.checkup-list { display: grid; gap: 8px; }
+.checkup { display: grid; grid-template-columns: 1fr auto; grid-template-areas: "name ago" "date date"; gap: 4px 10px; align-items: center; background: var(--bg); border-radius: 14px; padding: 10px 12px; }
+.checkup-name { grid-area: name; font-weight: 700; }
+.checkup-ago { grid-area: ago; color: var(--ink-2); font-size: .88rem; font-weight: 700; }
+.checkup input { grid-area: date; min-height: 44px; background: var(--card); }
+#health-notes { width: 100%; }
+
+/* Birthdays */
+.bday-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.bday {
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px; cursor: pointer;
+  background: var(--card); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow);
+}
+.bday.today { background: var(--sun-soft); border-color: var(--sun); }
+.bday-emoji { font-size: 1.9rem; line-height: 1; }
+.bday-main { flex: 1; min-width: 0; }
+.bday-name { font-weight: 800; font-size: 1.05rem; }
+.bday-date { color: var(--ink-2); font-size: .92rem; }
+.bday-when { font-weight: 800; font-size: .9rem; color: var(--sky); white-space: nowrap; }
+
 /* ---------- Toast ---------- */
 .toast {
   position: fixed; left: 50%; bottom: calc(var(--nav-h) + var(--safe-b) + 90px); z-index: 50;

@@ -46,6 +46,7 @@
     }
     if (d.plans && typeof d.plans === 'object') s.plans = d.plans;
     if (d.spotted && typeof d.spotted === 'object') s.spotted = d.spotted;
+    if (d.home && typeof d.home === 'object') s.home = d.home;
     if (d.settings) Object.assign(s.settings, d.settings);
     s.activeId = d.activeId;
     if (!s.profiles.some(function (p) { return p.id === s.activeId; })) {
@@ -254,6 +255,10 @@
     $('#back-today').hidden = ui.dayKey === today;
 
     $('#day-sky-notes').innerHTML = skyNotesHTML(ui.dayKey);
+    $('#day-home-notes').innerHTML = Home.dayNotes(ui.dayKey).map(function (n) {
+      return '<li><span class="ev-icon" aria-hidden="true">' + n.icon + '</span><div><strong>' + esc(n.title) +
+        '</strong>' + (n.note ? '<span class="note">' + esc(n.note) + '</span>' : '') + '</div></li>';
+    }).join('');
 
     var list = plansFor(ui.dayKey);
     $('#card-list').innerHTML = list.map(cardHTML).join('');
@@ -520,6 +525,7 @@
     state.profiles = state.profiles.filter(function (p) { return p.id !== id; });
     delete state.plans[id];
     if (state.spotted) delete state.spotted[id];
+    Home.forgetPerson(id);
     if (state.activeId === id) state.activeId = state.profiles[0] ? state.profiles[0].id : null;
     save();
     $('#person-dialog').close();
@@ -596,8 +602,11 @@
       b.setAttribute('aria-pressed', String(+b.dataset.min * 60000 === s.duration));
     });
     var pill = $('#timer-pill');
-    pill.hidden = !(s.running && ui.view !== 'timer');
-    $('#timer-pill-text').textContent = text;
+    var showTime = s.running || (s.remaining > 0 && s.remaining < s.duration);
+    $('#timer-pill-text').textContent = showTime ? ' ' + text : '';
+    pill.classList.toggle('running', s.running);
+    pill.classList.toggle('active', ui.view === 'timer');
+    pill.setAttribute('aria-label', s.running ? 'Timer: ' + text + ' left' : 'Timer');
     document.title = s.running ? '⏳ ' + text + ' · My Days' : 'My Days · Somerset';
   }
 
@@ -735,8 +744,9 @@
     var lead = (Sky.keyToUTCNoon(firstKey).getUTCDay() + 6) % 7;
 
     var events = showSky ? Sky.eventsBetween(firstKey, lastKey) : [];
+    var personal = showPlans ? Home.personalEvents(firstKey, lastKey, me()) : [];
     var byDay = {};
-    events.forEach(function (e) { (byDay[e.date] = byDay[e.date] || []).push(e); });
+    personal.concat(events).forEach(function (e) { (byDay[e.date] = byDay[e.date] || []).push(e); });
 
     // Mini calendar
     var grid = ['M', 'T', 'W', 'T', 'F', 'S', 'S'].map(function (d) {
@@ -761,7 +771,7 @@
       if (!past) {
         evs.forEach(function (e) {
           if (e.type === 'new') return; // keep the list short; new moons still show in the Sky tab
-          highlights.push({ date: k, icon: e.icon, text: e.title, kind: 'sky' });
+          highlights.push({ date: k, icon: e.icon, text: e.title, kind: e.kind ? 'plan' : 'sky' });
         });
         plans.forEach(function (c) {
           highlights.push({ date: k, icon: c.emoji || '⭐', text: c.title, kind: 'plan', done: c.done });
@@ -919,6 +929,7 @@
     ui.dayKey = key;
     if (ui.view === 'ideas') renderIdeas();
     if (ui.view === 'nature') renderNature();
+    if (ui.view === 'home') Home.render();
   }
 
   /* ---------- Ideas ---------- */
@@ -1014,7 +1025,8 @@
   function showView(name) {
     if (name === 'months' && ui.view !== 'months') ui.prevView = ui.view;
     ui.view = name;
-    ['day', 'timer', 'sky', 'nature', 'ideas', 'months'].forEach(function (v) { $('#view-' + v).hidden = v !== name; });
+    if (name !== 'home') Home.stopBreathing();
+    ['day', 'timer', 'home', 'sky', 'nature', 'ideas', 'months'].forEach(function (v) { $('#view-' + v).hidden = v !== name; });
     $$('.nav-btn').forEach(function (b) {
       if (b.dataset.view === name) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
     });
@@ -1023,6 +1035,7 @@
     if (name === 'ideas') renderIdeas();
     if (name === 'months') renderMonths();
     if (name === 'nature') renderNature();
+    if (name === 'home') Home.render();
     renderTimer(Timer.state());
     window.scrollTo(0, 0);
   }
@@ -1327,6 +1340,10 @@
   /* ---------- Start ---------- */
   function start() {
     applyTheme();
+    Home.init({
+      state: function () { return state; }, save: save, me: me, esc: esc, uid: uid, toast: toast,
+      today: function () { return today; }, Sky: Sky
+    });
     bind();
     Timer.init();
     renderHeader();

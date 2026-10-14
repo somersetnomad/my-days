@@ -16,7 +16,8 @@ and keep an eye on the sun, moon and sky.
 |---|---|
 | **My Day** | Big clock, today's date, season, moon and sunrise/sunset. Add activity cards, tick them off, drag to reorder, move them to another day. Sky events show on the days they happen. |
 | **Months ahead** | A bird's-eye view of the next 6 months (up to 18): a small calendar for each month with sky events and your plans marked, plus a short list of highlights. Filter to just your plans or just the sky, and tap any day to plan it. Open it from My Day or Sky. |
-| **Timer** | Countdown with quick times (5, 10, 15, 25, 45 min), a big ring, a soft chime and a "Time's up!" message. Keeps running while you use the rest of the app. |
+| **Home** | **Meals:** plan breakfast, lunch and tea for the week, save favourite meals, keep a shopping list (copy it into a message), and see what's in season. **Self-care:** a feelings check-in, a gentle daily checklist that starts fresh every morning, and a one-minute breathing exercise. **Clothes:** sizes, things needed, and outgrown things to pass on. **Health:** appointments, medicines and routines (with optional reminders on My Day), check-up dates and important notes. **Birthdays:** family and friends in order of what's next, with reminders a week and three days before. Meals, the shopping list and birthdays are shared by the household; the rest belongs to each person. |
+| **Timer** (⏳ at the top) | Countdown with quick times (5, 10, 15, 25, 45 min), a big ring, a soft chime and a "Time's up!" message. Keeps running while you use the rest of the app. |
 | **Sky** | Moon phase, next full and new moon (with their names), sunrise, sunset and daylight for Somerset, how far through the season we are, a month calendar of sky events, and what's coming up. |
 | **Nature** | Month by month for Somerset. **Birds:** what to see and hear, where to go (Avalon Marshes, Steart, Exmoor, the Quantocks, Cheddar…), how to recognise them, a fun fact, and an "I saw one!" list for each person. **Foraging:** safe beginner finds with where to look, how to recognise them, what to make, clear warnings, and forager's rules. Use ‹ › to look at other months, and add a trip to any day. |
 | **Ideas** | Seasonal Somerset ideas, ideas from your own interests, and ideas for any day. One tap adds an idea to your day. |
@@ -126,6 +127,7 @@ js/sky.js               Sun, moon, seasons, clock changes (all calculated)
 js/timer.js             The timer and chime
 js/ideas.js             Activity kinds and the Ideas list
 js/nature.js            Birds and foraging, month by month
+js/home.js              Meals, self-care, clothes, health and birthdays
 js/lib/suncalc.js       Sun & moon maths library (SunCalc, BSD licence)
 data/sky-events.js      Meteor showers, eclipses and planets
 icons/                  App icons
