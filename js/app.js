@@ -6,7 +6,7 @@
   'use strict';
 
   var KEY = 'somerset-day-planner-v1';
-  var APP_VERSION = '10';
+  var APP_VERSION = '11';
   var swReg = null;
   var COLOURS = ['#3b7656', '#47769f', '#c97e1f', '#a55a8a', '#7a5fb0', '#c0563f', '#2f8f8a', '#8a7a2c'];
   var AVATARS = ['🦊', '🦉', '🐝', '🐞', '🦔', '🐴', '🐸', '🦋', '🐢', '🐬', '🐱', '🐶', '🦕', '🐉', '🌻', '🚀', '⚽', '🎸'];
@@ -32,7 +32,7 @@
   /* ---------- Saved data ---------- */
   function fresh() {
     return { version: 1, profiles: [], activeId: null, plans: {}, series: {}, order: {}, spotted: {},
-      settings: { theme: 'auto', sound: true, remindSound: true, calm: false } };
+      settings: { theme: 'sun', sunLook: true, sound: true, remindSound: true, calm: false } };
   }
 
   function migrate(d) {
@@ -53,6 +53,8 @@
     if (d.series && typeof d.series === 'object') s.series = d.series;
     if (d.order && typeof d.order === 'object') s.order = d.order;
     if (d.settings) Object.assign(s.settings, d.settings);
+    // One-time move to the new 'follow the sun' look for anyone on the old default
+    if (!(d.settings && d.settings.sunLook)) { if (!s.settings.theme || s.settings.theme === 'auto') s.settings.theme = 'sun'; s.settings.sunLook = true; }
     s.activeId = d.activeId;
     if (!s.profiles.some(function (p) { return p.id === s.activeId; })) {
       s.activeId = s.profiles[0] ? s.profiles[0].id : null;
@@ -176,10 +178,25 @@
   function longDate(key) { return Sky.fmtKey(key, { weekday: 'long', day: 'numeric', month: 'long' }); }
 
   /* ---------- Look & feel ---------- */
+  var lastPhase = null;
   function applyTheme() {
     var root = document.documentElement;
-    if (state.settings.theme === 'light' || state.settings.theme === 'dark') root.setAttribute('data-theme', state.settings.theme);
-    else root.removeAttribute('data-theme');
+    var choice = state.settings.theme || 'sun';
+    if (choice === 'sun') {
+      // Colours follow the real sun over Somerset
+      var ph = Sky.skyPhase(new Date());
+      lastPhase = ph.id;
+      root.setAttribute('data-sky', ph.id);
+      root.setAttribute('data-theme', (ph.id === 'night' || ph.id === 'dusk') ? 'dark' : 'light');
+    } else {
+      lastPhase = null;
+      root.removeAttribute('data-sky');
+      if (choice === 'light' || choice === 'dark') root.setAttribute('data-theme', choice);
+      else root.removeAttribute('data-theme');
+    }
+    // Match the phone's status bar to the page
+    var bg = getComputedStyle(document.body || root).backgroundColor;
+    $$('meta[name="theme-color"]').forEach(function (m) { m.setAttribute('content', bg); m.removeAttribute('media'); });
     root.classList.toggle('calm', !!state.settings.calm);
     var p = me();
     var c = p ? p.colour : COLOURS[0];
@@ -243,6 +260,9 @@
     var hm = Sky.fmt(now, { hour: '2-digit', minute: '2-digit', hour12: false });
     $('#hero-clock').textContent = hm;
     $('#mini-clock').textContent = hm;
+    if ((state.settings.theme || 'sun') === 'sun' && now.getSeconds() === 0) {
+      if (Sky.skyPhase(now).id !== lastPhase) { applyTheme(); if ($('#settings-dialog').open) renderSettings(); }
+    }
     var k = Sky.dayKey(now);
     if (k !== today) {
       var wasToday = ui.dayKey === today;
@@ -771,8 +791,14 @@
         '<button class="btn small" data-edit-person="' + esc(p.id) + '">Change</button></li>';
     }).join('');
     $$('#theme-seg .seg-btn').forEach(function (b) {
-      b.setAttribute('aria-checked', String(b.dataset.themeChoice === (state.settings.theme || 'auto')));
+      b.setAttribute('aria-checked', String(b.dataset.themeChoice === (state.settings.theme || 'sun')));
     });
+    var ph = Sky.skyPhase(new Date());
+    var help = $('#theme-help');
+    help.hidden = (state.settings.theme || 'sun') !== 'sun';
+    help.textContent = 'Colours change with dawn, daytime, golden hour, dusk and night, using today’s real sunrise (' +
+      Sky.fmtTime(ph.sunrise) + ') and sunset (' + Sky.fmtTime(ph.sunset) + ') in Somerset. Now: ' + ph.emoji + ' ' + ph.name +
+      (ph.next ? ', ' + ph.next.name.toLowerCase() + ' from ' + Sky.fmtTime(ph.next.at) + '.' : '.');
     $('#calm-motion').checked = !!state.settings.calm;
     $('#app-version').textContent = 'Version ' + APP_VERSION;
   }

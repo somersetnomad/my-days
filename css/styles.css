@@ -707,3 +707,54 @@ select {
 .devices-help p, .devices-help li { font-size: .95rem; }
 .devices-help p { margin: 0 0 10px; }
 .devices-help ol { margin: 0 0 10px; padding-left: 1.3em; display: grid; gap: 6px; }
+
+/* ==========================================================
+   Follow the sun – colours for each part of the day.
+   data-sky is set from today's real sunrise and sunset.
+   ========================================================== */
+html, body { transition: background-color 2s ease, color 2s ease; }
+.card, .panel, .topbar, .bottom-nav, .hero, .month-card, .nat-card, .idea, .meal-day, .bday {
+  transition: background-color 2s ease, border-color 2s ease, color 2s ease;
+}
+
+/* Dawn: soft pink and lavender */
+:root[data-sky="dawn"] {
+  --bg: #fbefe9; --bg-2: #f4e1d9; --card: #fffaf7; --line: #edd5cb;
+  --ink: #2c2a35; --ink-2: #66606f;
+  --sky-soft: #e9e5f5; --sun-soft: #fde3d3; --accent-soft: #e2eee4;
+}
+:root[data-sky="dawn"] .hero { background: linear-gradient(170deg, #d9d4f0 0%, #f7d5d6 55%, #fde3c8 100%); }
+
+/* Daytime: the usual fresh, bright look */
+:root[data-sky="day"] .hero { background: linear-gradient(160deg, #cfe3f3, #f7e6c8); }
+
+/* Golden hour: warm amber before sunset */
+:root[data-sky="golden"] {
+  --bg: #f9ecd6; --bg-2: #f1dec0; --card: #fffaf0; --line: #e8d1aa;
+  --ink: #2f2a20; --ink-2: #6b604c;
+  --sky-soft: #f4e3cc; --sun-soft: #f9d9a8; --accent-soft: #e4ecd6;
+}
+:root[data-sky="golden"] .hero { background: linear-gradient(165deg, #fbd9a0 0%, #f6b98f 60%, #ee9f8e 100%); }
+
+/* Dusk: violet twilight after sunset */
+:root[data-sky="dusk"] {
+  --bg: #2a2340; --bg-2: #342b4f; --card: #3a3158; --line: #4b4170;
+  --ink: #f2ecf6; --ink-2: #c7bcd9;
+  --sky-soft: #3d3765; --sun-soft: #54395a; --accent-soft: #2f4a45;
+  --moon-dark: #2c2747;
+}
+:root[data-sky="dusk"] .hero { background: linear-gradient(170deg, #3b3570 0%, #6b4a7d 55%, #b0687a 100%); }
+
+/* Night: deep, calm blue */
+:root[data-sky="night"] .hero { background: linear-gradient(170deg, #121a33 0%, #1d2a4d 100%); }
+:root[data-sky="night"] .hero::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: .55;
+  background-image: radial-gradient(1.2px 1.2px at 12% 22%, #fff, transparent), radial-gradient(1px 1px at 28% 68%, #fff, transparent),
+    radial-gradient(1.4px 1.4px at 47% 15%, #fff, transparent), radial-gradient(1px 1px at 63% 52%, #fff, transparent),
+    radial-gradient(1.3px 1.3px at 78% 28%, #fff, transparent), radial-gradient(1px 1px at 88% 74%, #fff, transparent),
+    radial-gradient(1px 1px at 36% 40%, #fff, transparent), radial-gradient(1.2px 1.2px at 93% 12%, #fff, transparent);
+}
+.hero { position: relative; }
+.hero > * { position: relative; z-index: 1; }
+:root[data-sky="dusk"] .hero .chip, :root[data-sky="night"] .hero .chip { background: rgba(255, 255, 255, .12); }
+#theme-seg .seg-btn { font-size: .9rem; }

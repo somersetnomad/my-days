@@ -337,7 +337,39 @@
       '</svg>';
   }
 
+  /* ---------- Time of day, from the real sun ---------- */
+
+  var PHASES = {
+    night:  { name: 'Night', emoji: '🌙' },
+    dawn:   { name: 'Dawn', emoji: '🌅' },
+    day:    { name: 'Daytime', emoji: '☀️' },
+    golden: { name: 'Golden hour', emoji: '🌇' },
+    dusk:   { name: 'Dusk', emoji: '🌆' }
+  };
+
+  // Which part of the day it is in Somerset right now, and when it changes next
+  function skyPhase(now) {
+    now = now || new Date();
+    var t = SunCalc.getTimes(keyToUTCNoon(dayKey(now)), LAT, LNG);
+    var marks = [
+      { id: 'dawn', at: t.dawn },
+      { id: 'day', at: new Date(t.sunrise.getTime() + 40 * 60000) },
+      { id: 'golden', at: t.goldenHour },
+      { id: 'dusk', at: t.sunset },
+      { id: 'night', at: new Date(t.dusk.getTime() + 20 * 60000) }
+    ].filter(function (m) { return m.at && !isNaN(m.at); });
+    var id = 'night', next = marks[0];
+    for (var i = 0; i < marks.length; i++) {
+      if (now >= marks[i].at) { id = marks[i].id; next = marks[i + 1] || null; }
+    }
+    var ph = PHASES[id];
+    return { id: id, name: ph.name, emoji: ph.emoji,
+      next: next ? { id: next.id, name: PHASES[next.id].name, at: next.at } : null,
+      sunrise: t.sunrise, sunset: t.sunset };
+  }
+
   global.Sky = {
+    skyPhase: skyPhase,
     LAT: LAT, LNG: LNG, TZ: TZ,
     dayKey: dayKey, addDays: addDays, daysBetween: daysBetween, keyToUTCNoon: keyToUTCNoon,
     fmt: fmt, fmtKey: fmtKey, fmtTime: fmtTime,

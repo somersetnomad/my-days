@@ -8,8 +8,8 @@
   When you change any file, bump VERSION below AND the ?v= numbers in
   index.html (and APP_VERSION in js/app.js), so devices pick up the new copy.
 */
-var VERSION = 'my-days-v10';
-var ASSET_V = '10';  // must match the ?v= numbers in index.html
+var VERSION = 'my-days-v11';
+var ASSET_V = '11';  // must match the ?v= numbers in index.html
 var FILES = [
   './',
   'index.html',
