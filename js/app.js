@@ -6,7 +6,7 @@
   'use strict';
 
   var KEY = 'somerset-day-planner-v1';
-  var APP_VERSION = '9';
+  var APP_VERSION = '10';
   var swReg = null;
   var COLOURS = ['#3b7656', '#47769f', '#c97e1f', '#a55a8a', '#7a5fb0', '#c0563f', '#2f8f8a', '#8a7a2c'];
   var AVATARS = ['🦊', '🦉', '🐝', '🐞', '🦔', '🐴', '🐸', '🦋', '🐢', '🐬', '🐱', '🐶', '🦕', '🐉', '🌻', '🚀', '⚽', '🎸'];
