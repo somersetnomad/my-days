@@ -693,3 +693,10 @@ select {
 #remind-dialog h2 { margin-bottom: 14px; }
 .set-help.small { font-size: .88rem; margin-top: 8px; }
 .hl-repeats { font-size: .88rem; font-weight: 600; color: var(--ink-2); background: var(--sky-soft); border-radius: 10px; padding: 6px 10px; margin-top: 4px; }
+
+/* ---------- Offline ---------- */
+.offline-pill {
+  display: inline-flex; align-items: center; gap: 4px; font-size: .82rem; font-weight: 800;
+  background: var(--bg-2); color: var(--ink-2); border-radius: 999px; padding: 5px 10px; white-space: nowrap;
+}
+@media (max-width: 430px) { .offline-pill:not([hidden]) + .mini-clock { display: none; } }

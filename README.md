@@ -71,6 +71,18 @@ That's it – open the link on any device.
 
 ## Things to know
 
+### Works offline
+Open My Days once with a connection and it saves itself on the device. After that **everything
+works with no internet**: planning, repeats, reminders, the timer, the sky (sun, moon and seasons
+are worked out on the device), nature, home, ideas, and saving a backup copy. Nothing in the app
+ever needs to reach another website.
+
+- A small **📴 Offline** label appears at the top when there's no connection.
+- Updates arrive by themselves the next time the app is opened with a connection.
+- **Settings** shows "Saved on this device – works with no internet" once it's ready.
+- On iPhone/iPad, add it to the Home Screen: Safari can clear website data that hasn't been used
+  for a few weeks, but not for apps on the Home Screen.
+
 ### Your plans live on each device
 Because there are no accounts, plans are saved in the browser you use. That means:
 - Different devices have their own plans.
@@ -96,8 +108,8 @@ then **Commit changes**. The site updates a minute or so later.
 
 **After any change, bump the version numbers** so everyone's device fetches the new version
 instead of an old saved copy:
-1. In `sw.js`, change the version at the top (for example `my-days-v8` → `my-days-v9`).
-2. In `index.html`, change every `?v=8` to `?v=9` (use Find & Replace).
+1. In `sw.js`, change `VERSION` (for example `my-days-v9` → `my-days-v10`) and `ASSET_V` (`'9'` → `'10'`).
+2. In `index.html`, change every `?v=9` to `?v=10` (use Find & Replace).
 3. In `js/app.js`, change `APP_VERSION` near the top to match – it shows in Settings.
 
 People's devices then switch to the new version by themselves the next time they open the app.

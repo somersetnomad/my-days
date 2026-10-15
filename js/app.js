@@ -6,7 +6,7 @@
   'use strict';
 
   var KEY = 'somerset-day-planner-v1';
-  var APP_VERSION = '8';
+  var APP_VERSION = '9';
   var swReg = null;
   var COLOURS = ['#3b7656', '#47769f', '#c97e1f', '#a55a8a', '#7a5fb0', '#c0563f', '#2f8f8a', '#8a7a2c'];
   var AVATARS = ['🦊', '🦉', '🐝', '🐞', '🦔', '🐴', '🐸', '🦋', '🐢', '🐬', '🐱', '🐶', '🦕', '🐉', '🌻', '🚀', '⚽', '🎸'];
@@ -752,8 +752,19 @@
     $('#remind-sound').checked = state.settings.remindSound !== false;
   }
 
+  function renderBackupStatus() {
+    var el = $('#backup-status');
+    if (!el) return;
+    var last = state.settings.lastExport;
+    if (!last) { el.textContent = '💡 You haven’t saved a copy yet. It only takes a moment.'; return; }
+    var days = Sky.daysBetween(last, today);
+    el.textContent = '✅ Last copy saved ' + (days === 0 ? 'today' : days === 1 ? 'yesterday' : days + ' days ago') + '.' +
+      (days > 30 ? ' Time for a fresh one?' : '');
+  }
+
   function renderSettings() {
     renderSettingsReminders();
+    renderBackupStatus();
     $('#people-list').innerHTML = state.profiles.map(function (p) {
       return '<li><span class="mini-avatar" style="background:' + esc(p.colour) + '33;box-shadow:inset 0 0 0 3px ' + esc(p.colour) + '">' + esc(p.avatar) + '</span>' +
         '<span class="pname">' + esc(p.name) + (p.id === state.activeId ? ' <span class="optional">(now)</span>' : '') + '</span>' +
@@ -767,6 +778,9 @@
   }
 
   function exportPlans() {
+    state.settings.lastExport = today;
+    save();
+    renderBackupStatus();
     var payload = { app: 'my-days-somerset', exportedAt: new Date().toISOString(), data: state };
     var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     var a = document.createElement('a');
@@ -1468,6 +1482,7 @@
       if (this.checked) Timer.unlockAudio();
     });
     $('#update-btn').addEventListener('click', function () {
+      if (!navigator.onLine) { toast('You’re offline – try again when you’re connected'); return; }
       toast('Checking for updates…');
       var done = function () { location.reload(); };
       if (swReg) swReg.update().then(function () { setTimeout(done, 800); }, done); else done();
@@ -1609,6 +1624,34 @@
     return out.concat(Home.reminderItems(key));
   }
 
+  /* ---------- Offline ---------- */
+  function showOnline(announce) {
+    var off = navigator.onLine === false;
+    $('#offline-pill').hidden = !off;
+    if (announce) toast(off ? '📴 You’re offline. Everything still works and saves on this device.' : 'Back online ✓');
+  }
+
+  function setUpOffline() {
+    showOnline(false);
+    window.addEventListener('offline', function () { showOnline(true); });
+    window.addEventListener('online', function () { showOnline(true); });
+    var status = $('#offline-status');
+    if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+      navigator.serviceWorker.ready.then(function () {
+        status.textContent = '✅ Saved on this device – works with no internet.';
+      });
+    } else {
+      status.textContent = 'Open My Days from its web address to use it offline.';
+    }
+    // Ask the browser not to clear our saved plans when space runs low
+    // (Firefox would show a question, so it is left to its own settings there).
+    try {
+      if (navigator.storage && navigator.storage.persist && !/firefox/i.test(navigator.userAgent)) {
+        navigator.storage.persisted().then(function (yes) { if (!yes) navigator.storage.persist(); });
+      }
+    } catch (e) { /* not available */ }
+  }
+
   /* ---------- Start ---------- */
   function start() {
     applyTheme();
@@ -1618,6 +1661,7 @@
     });
     bind();
     Timer.init();
+    setUpOffline();
     Reminders.init({
       collect: collectReminders, today: function () { return today; }, addDays: Sky.addDays,
       settings: function () { return state.settings; }, chime: Timer.chime, esc: esc, toast: toast,
