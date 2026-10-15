@@ -15,6 +15,7 @@ and keep an eye on the sun, moon and sky.
 | Screen | What it does |
 |---|---|
 | **My Day** | Big clock, today's date, season, moon and sunrise/sunset. Add activity cards, tick them off, drag to reorder, move them to another day. Sky events show on the days they happen. |
+| **Repeats & reminders** | Any plan can repeat: every day, weekdays, chosen days (e.g. Mon & Wed), weekly, every 2 weeks, monthly or yearly, with an optional end date. Each day keeps its own tick, and you can skip a single day. Add a 🔔 reminder (at the time, or 5 min to 1 day before) to plans and health appointments: it chimes, shows a Reminder message with Snooze, and can pop up a browser notification. Reminders work while My Days is open (on screen, in another tab or in the background), not when the browser is fully closed. On iPhone/iPad, add My Days to the Home Screen to allow pop-ups. Turn notifications on in Settings → Reminders. |
 | **Months ahead** | A bird's-eye view of the next 6 months (up to 18): a small calendar for each month with sky events and your plans marked, plus a short list of highlights. Filter to just your plans or just the sky, and tap any day to plan it. Open it from My Day or Sky. |
 | **Home** | **Meals:** plan breakfast, lunch and tea for the week, save favourite meals, keep a shopping list (copy it into a message), and see what's in season. **Self-care:** a feelings check-in, a gentle daily checklist that starts fresh every morning, and a one-minute breathing exercise. **Clothes:** sizes, things needed, and outgrown things to pass on. **Health:** appointments, medicines and routines (with optional reminders on My Day), check-up dates and important notes. **Birthdays:** family and friends in order of what's next, with reminders a week and three days before. Meals, the shopping list and birthdays are shared by the household; the rest belongs to each person. |
 | **Timer** (⏳ at the top) | Countdown with quick times (5, 10, 15, 25, 45 min), a big ring, a soft chime and a "Time's up!" message. Keeps running while you use the rest of the app. |
@@ -95,8 +96,8 @@ then **Commit changes**. The site updates a minute or so later.
 
 **After any change, bump the version numbers** so everyone's device fetches the new version
 instead of an old saved copy:
-1. In `sw.js`, change the version at the top (for example `my-days-v7` → `my-days-v8`).
-2. In `index.html`, change every `?v=7` to `?v=8` (use Find & Replace).
+1. In `sw.js`, change the version at the top (for example `my-days-v8` → `my-days-v9`).
+2. In `index.html`, change every `?v=8` to `?v=9` (use Find & Replace).
 3. In `js/app.js`, change `APP_VERSION` near the top to match – it shows in Settings.
 
 People's devices then switch to the new version by themselves the next time they open the app.
@@ -127,6 +128,8 @@ sw.js                   Makes it work offline
 css/styles.css          How it looks
 js/app.js               The planner, people, settings and screens
 js/sky.js               Sun, moon, seasons, clock changes (all calculated)
+js/repeat.js            Repeating plans (rules like “every Thursday”)
+js/reminders.js         Reminders, chimes and notifications
 js/timer.js             The timer and chime
 js/ideas.js             Activity kinds and the Ideas list
 js/nature.js            Birds and foraging, month by month

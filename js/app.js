@@ -6,7 +6,7 @@
   'use strict';
 
   var KEY = 'somerset-day-planner-v1';
-  var APP_VERSION = '7';
+  var APP_VERSION = '8';
   var swReg = null;
   var COLOURS = ['#3b7656', '#47769f', '#c97e1f', '#a55a8a', '#7a5fb0', '#c0563f', '#2f8f8a', '#8a7a2c'];
   var AVATARS = ['🦊', '🦉', '🐝', '🐞', '🦔', '🐴', '🐸', '🦋', '🐢', '🐬', '🐱', '🐶', '🦕', '🐉', '🌻', '🚀', '⚽', '🎸'];
@@ -31,7 +31,8 @@
 
   /* ---------- Saved data ---------- */
   function fresh() {
-    return { version: 1, profiles: [], activeId: null, plans: {}, spotted: {}, settings: { theme: 'auto', sound: true, calm: false } };
+    return { version: 1, profiles: [], activeId: null, plans: {}, series: {}, order: {}, spotted: {},
+      settings: { theme: 'auto', sound: true, remindSound: true, calm: false } };
   }
 
   function migrate(d) {
@@ -49,6 +50,8 @@
     if (d.plans && typeof d.plans === 'object') s.plans = d.plans;
     if (d.spotted && typeof d.spotted === 'object') s.spotted = d.spotted;
     if (d.home && typeof d.home === 'object') s.home = d.home;
+    if (d.series && typeof d.series === 'object') s.series = d.series;
+    if (d.order && typeof d.order === 'object') s.order = d.order;
     if (d.settings) Object.assign(s.settings, d.settings);
     s.activeId = d.activeId;
     if (!s.profiles.some(function (p) { return p.id === s.activeId; })) {
@@ -94,6 +97,50 @@
   }
   function findCard(id) {
     var list = plansFor(ui.dayKey);
+    for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i];
+    return null;
+  }
+
+  /* ---------- Repeating plans ---------- */
+  function seriesFor(person) {
+    person = person || me();
+    if (!person) return [];
+    state.series = state.series || {};
+    return state.series[person.id] = state.series[person.id] || [];
+  }
+  function getSeries(id) {
+    var list = seriesFor();
+    for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i];
+    return null;
+  }
+  function occurrence(sr, key) {
+    return {
+      id: sr.id + '@' + key, seriesId: sr.id, date: key,
+      title: sr.title, emoji: sr.emoji, cat: sr.cat, tags: sr.tags || [], time: sr.time || '',
+      notes: sr.notes || '', remind: sr.remind, done: !!(sr.done && sr.done[key]), repeat: Repeat.describe(sr)
+    };
+  }
+
+  // Everything on a day: one-off plans plus repeating plans, in the person's chosen order
+  function itemsFor(key, person) {
+    person = person || me();
+    if (!person) return [];
+    var once = plansFor(key, person).slice();
+    var reps = seriesFor(person).filter(function (sr) { return Repeat.occursOn(sr, key); })
+      .map(function (sr) { return occurrence(sr, key); })
+      .sort(function (a, b) { return (a.time || '99') < (b.time || '99') ? -1 : 1; });
+    var all = once.concat(reps);
+    var order = (state.order && state.order[person.id] && state.order[person.id][key]) || [];
+    if (order.length) {
+      var pos = function (it, i) { var k = order.indexOf(it.id); return k >= 0 ? k : 1000 + i; };
+      var ranked = all.map(function (it, i) { return { it: it, r: pos(it, i) }; });
+      ranked.sort(function (a, b) { return a.r - b.r; });
+      all = ranked.map(function (x) { return x.it; });
+    }
+    return all;
+  }
+  function findItem(id) {
+    var list = itemsFor(ui.dayKey);
     for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i];
     return null;
   }
@@ -221,6 +268,10 @@
   function cardHTML(c) {
     var meta = [];
     if (c.time) meta.push('<span class="meta time">🕒 ' + esc(c.time) + '</span>');
+    if (c.repeat) meta.push('<span class="meta repeat">🔁 ' + esc(c.repeat) + '</span>');
+    if (c.remind !== undefined && c.remind !== null && c.remind !== '' && c.time) {
+      meta.push('<span class="meta remind" title="' + esc(Reminders.label(c.remind)) + '">🔔 ' + esc(shortRemind(c.remind)) + '</span>');
+    }
     var cat = catById(c.cat);
     if (cat) meta.push('<span class="meta">' + cat.emoji + ' ' + esc(cat.short) + '</span>');
     (c.tags || []).forEach(function (t) { meta.push('<span class="meta tag">' + esc(t) + '</span>'); });
@@ -236,6 +287,14 @@
       '<button class="drag-handle" aria-label="Move ' + esc(c.title) + ' up or down. Use the arrow keys.">' +
         '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="6" r="1.8"/><circle cx="15" cy="6" r="1.8"/><circle cx="9" cy="12" r="1.8"/><circle cx="15" cy="12" r="1.8"/><circle cx="9" cy="18" r="1.8"/><circle cx="15" cy="18" r="1.8"/></svg>' +
       '</button></li>';
+  }
+
+  function shortRemind(r) {
+    r = +r;
+    if (r === 0) return 'On time';
+    if (r < 60) return r + ' min before';
+    if (r < 1440) return (r / 60) + ' hr before';
+    return 'Day before';
   }
 
   function skyNotesHTML(key) {
@@ -262,7 +321,7 @@
         '</strong>' + (n.note ? '<span class="note">' + esc(n.note) + '</span>' : '') + '</div></li>';
     }).join('');
 
-    var list = plansFor(ui.dayKey);
+    var list = itemsFor(ui.dayKey);
     $('#card-list').innerHTML = list.map(cardHTML).join('');
     $('#day-empty').hidden = list.length > 0;
     $('#add-btn').hidden = list.length === 0; // the empty message has its own big Add button
@@ -275,11 +334,21 @@
   }
 
   function toggleDone(id) {
-    var list = plansFor(ui.dayKey);
-    list.forEach(function (c) { if (c.id === id) c.done = !c.done; });
-    setPlans(ui.dayKey, list);
+    if (id.indexOf('@') > 0) {
+      var sr = getSeries(id.split('@')[0]);
+      if (!sr) return;
+      sr.done = sr.done || {};
+      if (sr.done[ui.dayKey]) delete sr.done[ui.dayKey]; else sr.done[ui.dayKey] = true;
+      // only keep ticks from the last few months
+      Object.keys(sr.done).forEach(function (k) { if (Sky.daysBetween(k, today) > 120) delete sr.done[k]; });
+      save();
+    } else {
+      var list = plansFor(ui.dayKey);
+      list.forEach(function (c) { if (c.id === id) c.done = !c.done; });
+      setPlans(ui.dayKey, list);
+    }
     var li = $('.card[data-id="' + CSS.escape(id) + '"]');
-    var card = findCard(id);
+    var card = findItem(id);
     if (li && card) {
       li.classList.toggle('is-done', !!card.done);
       li.classList.toggle('just-done', !!card.done);
@@ -292,6 +361,15 @@
     var list = plansFor(ui.dayKey);
     list.sort(function (a, b) { return ids.indexOf(a.id) - ids.indexOf(b.id); });
     setPlans(ui.dayKey, list);
+    var p = me();
+    if (p && ids.some(function (id) { return id.indexOf('@') > 0; })) {
+      state.order = state.order || {};
+      state.order[p.id] = state.order[p.id] || {};
+      state.order[p.id][ui.dayKey] = ids;
+      // tidy old orders
+      Object.keys(state.order[p.id]).forEach(function (k) { if (Sky.daysBetween(k, today) > 60) delete state.order[p.id][k]; });
+      save();
+    }
   }
 
   /* Drag to reorder (works with mouse, touch and pen) */
@@ -358,20 +436,47 @@
       : '<span class="optional">Add things you love, like “horses” or “coding”.</span>';
   }
 
+  function renderRepeatFields() {
+    var rule = $('#f-repeat').value;
+    $('#f-days-wrap').hidden = rule !== 'days';
+    $('#f-until-wrap').hidden = !rule;
+    $('#f-days').innerHTML = Repeat.DOW_SHORT.map(function (d, i) {
+      return '<button type="button" class="chip-btn" data-dow="' + i + '" aria-pressed="' + (ui.form.days.indexOf(i) >= 0) + '">' + d + '</button>';
+    }).join('');
+    $('#f-remind-hint').hidden = !($('#f-remind').value !== '' && !$('#f-time').value);
+  }
+
   function openCardDialog(id, preset) {
-    var c = id ? findCard(id) : null;
+    var c = id ? findItem(id) : null;
+    var sr = c && c.seriesId ? getSeries(c.seriesId) : null;
     ui.editingId = c ? c.id : null;
-    var src = c || preset || {};
-    ui.form = { emoji: src.emoji || '⭐', cat: src.cat || null, tags: (src.tags || []).slice() };
+    ui.editingSeries = sr ? sr.id : null;
+    var src = sr || c || preset || {};
+    ui.form = { emoji: src.emoji || '⭐', cat: src.cat || null, tags: (src.tags || []).slice(),
+      days: (sr && sr.days ? sr.days.slice() : [Repeat.dow(ui.dayKey)]) };
+    $('#f-repeat').innerHTML = Repeat.RULES.map(function (r) {
+      return '<option value="' + r.id + '">' + esc(r.label) + '</option>';
+    }).join('');
+    $('#f-repeat').value = sr ? sr.rule : '';
+    $('#f-until').value = sr && sr.until ? sr.until : '';
+    $('#f-remind').innerHTML = Reminders.OPTIONS.map(function (o) {
+      return '<option value="' + o.v + '">' + esc(o.label) + '</option>';
+    }).join('');
+    $('#f-remind').value = src.remind === undefined || src.remind === null ? '' : String(src.remind);
     $('#card-dialog-title').textContent = c ? 'Change this' : (ui.dayKey === today ? 'Add to today' : 'Add to ' + shortDate(ui.dayKey));
     $('#f-title').value = src.title || '';
     $('#f-time').value = src.time || '';
     $('#f-notes').value = src.notes || '';
-    $('#f-more').open = !!(src.time || src.notes);
+    $('#f-more').open = !!(src.time || src.notes || sr || (src.remind !== undefined && src.remind !== null && src.remind !== ''));
+    $('#f-series-info').hidden = !sr;
+    if (sr) $('#f-series-info').textContent = '🔁 ' + Repeat.describe(sr) + '. Changes here apply to every repeat.';
+    $('#f-move-wrap').hidden = !!sr;
+    $('#f-skip').hidden = !sr;
+    renderRepeatFields();
     $('#f-newtag').value = '';
     $('#f-edit-extras').hidden = !c;
     $('#f-move-date').value = Sky.addDays(ui.dayKey, 1);
-    resetConfirm($('#f-delete'), 'Remove this');
+    resetConfirm($('#f-delete'), sr ? 'Remove all repeats' : 'Remove this');
     $('#f-title').removeAttribute('aria-invalid');
     renderFormEmoji(); renderFormCats(); renderFormTags();
     $('#card-dialog').showModal();
@@ -395,21 +500,88 @@
       toast('Give it a name first');
       return;
     }
+    var remind = $('#f-remind').value;
     var data = {
       title: title, emoji: ui.form.emoji, cat: ui.form.cat, tags: ui.form.tags.slice(),
-      time: $('#f-time').value, notes: $('#f-notes').value.trim()
+      time: $('#f-time').value, notes: $('#f-notes').value.trim(), remind: remind === '' ? null : +remind
     };
-    var list = plansFor(ui.dayKey);
-    if (ui.editingId) {
-      list = list.map(function (c) { return c.id === ui.editingId ? Object.assign({}, c, data) : c; });
+    if (data.remind !== null && !data.time) {
+      $('#f-more').open = true;
+      $('#f-time').focus();
+      toast('Add a time so the reminder knows when to ring');
+      return;
+    }
+    var rule = $('#f-repeat').value;
+    var until = $('#f-until').value;
+    var days = ui.form.days.slice().sort();
+    if (rule === 'days' && !days.length) { toast('Pick at least one day'); return; }
+    if (until && until < ui.dayKey) { toast('The stop date is before this day'); return; }
+
+    var key = ui.dayKey;
+    var wasNew = !ui.editingId;
+    var list = plansFor(key);
+    var p = me();
+
+    function newSeries(start, done) {
+      var sr = Object.assign({ id: uid(), start: start, until: until || '', rule: rule,
+        days: rule === 'days' ? days : [], skip: [], done: done || {} }, data);
+      seriesFor().push(sr);
+      return sr;
+    }
+    function endSeries(sr, beforeKey) {
+      // keep its past days, stop it the day before
+      if (sr.start >= beforeKey) {
+        state.series[p.id] = seriesFor().filter(function (x) { return x.id !== sr.id; });
+      } else {
+        sr.until = Sky.addDays(beforeKey, -1);
+      }
+    }
+
+    if (ui.editingSeries) {
+      var sr = getSeries(ui.editingSeries);
+      var item = findItem(ui.editingId);
+      if (!rule) {
+        // turn this day into a one-off, stop the repeats from here
+        endSeries(sr, key);
+        list.push(Object.assign({ id: uid(), done: !!(item && item.done) }, data));
+        setPlans(key, list);
+      } else if (rule !== sr.rule || (rule === 'days' && days.join() !== (sr.days || []).join())) {
+        // new pattern from this day on
+        var keepDone = {};
+        if (item && item.done) keepDone[key] = true;
+        endSeries(sr, key);
+        newSeries(key, keepDone);
+      } else {
+        Object.assign(sr, data, { until: until || '' });
+      }
+      save();
+    } else if (ui.editingId) {
+      var card = findCard(ui.editingId);
+      if (rule) {
+        list = list.filter(function (c) { return c.id !== ui.editingId; });
+        setPlans(key, list);
+        var d0 = {};
+        if (card && card.done) d0[key] = true;
+        newSeries(key, d0);
+        save();
+      } else {
+        list = list.map(function (c) { return c.id === ui.editingId ? Object.assign({}, c, data) : c; });
+        setPlans(key, list);
+      }
+    } else if (rule) {
+      newSeries(key);
+      save();
     } else {
       data.id = uid(); data.done = false;
       list.push(data);
+      setPlans(key, list);
     }
-    setPlans(ui.dayKey, list);
     $('#card-dialog').close();
     renderDay();
-    toast(ui.editingId ? 'Saved ✓' : 'Added ✓');
+    toast(wasNew ? (rule ? 'Added · 🔁 ' + Repeat.describe({ rule: rule, start: key, days: days }) + ' ✓' : 'Added ✓') : 'Saved ✓');
+    if (data.remind !== null && Reminders.permission() === 'default') {
+      Reminders.ask().then(function () { renderSettingsReminders(); });
+    }
   }
 
   function moveCard(toKey) {
@@ -445,7 +617,39 @@
     clearTimeout(btn._t);
   }
 
+  function skipDay() {
+    var sr = getSeries(ui.editingSeries);
+    if (!sr) return;
+    var key = ui.dayKey;
+    sr.skip = sr.skip || [];
+    sr.skip.push(key);
+    save();
+    $('#card-dialog').close();
+    renderDay();
+    toast('Skipped for ' + (key === today ? 'today' : shortDate(key)), 'Undo', function () {
+      sr.skip = sr.skip.filter(function (k) { return k !== key; });
+      save(); renderDay();
+    });
+  }
+
+  function deleteSeries() {
+    var p = me();
+    var all = seriesFor();
+    var idx = -1, removed = null;
+    all.forEach(function (x, i) { if (x.id === ui.editingSeries) { idx = i; removed = x; } });
+    if (!removed) return;
+    all.splice(idx, 1);
+    save();
+    $('#card-dialog').close();
+    renderDay();
+    toast('Removed all repeats', 'Undo', function () {
+      seriesFor().splice(idx, 0, removed);
+      save(); renderDay();
+    });
+  }
+
   function deleteCard() {
+    if (ui.editingSeries) { deleteSeries(); return; }
     var key = ui.dayKey;
     var list = plansFor(key);
     var idx = -1, removed = null;
@@ -537,7 +741,19 @@
   }
 
   /* ---------- Settings ---------- */
+  function renderSettingsReminders() {
+    var perm = Reminders.permission();
+    var status = $('#notify-status'), btn = $('#notify-btn');
+    btn.hidden = perm !== 'default';
+    if (perm === 'granted') status.textContent = '✅ Pop-up notifications are on. Reminders will also show when you’re in another app or tab.';
+    else if (perm === 'denied') status.textContent = 'Pop-up notifications are blocked for this site. Reminders still chime and show inside My Days. To allow pop-ups, change the notification setting for this site in your browser.';
+    else if (perm === 'unsupported') status.textContent = 'This browser can’t show pop-up notifications here, but reminders still chime and show inside My Days. On iPhone or iPad, add My Days to your Home Screen (Share → Add to Home Screen) and open it from there to allow pop-ups.';
+    else status.textContent = 'Allow pop-ups so reminders can reach you when you’re in another app or tab.';
+    $('#remind-sound').checked = state.settings.remindSound !== false;
+  }
+
   function renderSettings() {
+    renderSettingsReminders();
     $('#people-list').innerHTML = state.profiles.map(function (p) {
       return '<li><span class="mini-avatar" style="background:' + esc(p.colour) + '33;box-shadow:inset 0 0 0 3px ' + esc(p.colour) + '">' + esc(p.avatar) + '</span>' +
         '<span class="pname">' + esc(p.name) + (p.id === state.activeId ? ' <span class="optional">(now)</span>' : '') + '</span>' +
@@ -703,7 +919,7 @@
     for (var i = 0; i < cells; i++) {
       var k = Sky.addDays(startKey, i);
       var evs = byDay[k] || [];
-      var hasPlans = plansFor(k).length > 0;
+      var hasPlans = itemsFor(k).length > 0;
       var cls = 'cal-day' + (k.slice(0, 7) !== ui.calMonth ? ' other' : '') + (k === today ? ' today' : '');
       var label = longDate(k) + (evs.length ? ': ' + evs.map(function (e) { return e.title; }).join(', ') : '') + (hasPlans ? '. You have plans.' : '');
       html += '<button class="' + cls + '" role="gridcell" data-day="' + k + '" aria-selected="' + (k === ui.calSelected) + '" aria-label="' + esc(label) + '">' +
@@ -719,7 +935,7 @@
   function renderCalDetail(byDay) {
     var k = ui.calSelected;
     var evs = (byDay && byDay[k]) || Sky.eventsOn(k);
-    var n = plansFor(k).length;
+    var n = itemsFor(k).length;
     var html = '<h3>' + esc(longDate(k)) + '</h3>';
     html += evs.length
       ? '<ul class="event-list">' + evs.map(function (e) {
@@ -758,10 +974,11 @@
     for (var b = 0; b < lead; b++) grid += '<span class="mini-blank" aria-hidden="true"></span>';
 
     var highlights = [];
+    var seenSeries = {}, repeatNames = [];
     for (var d = 1; d <= daysInMonth; d++) {
       var k = monthKey + '-' + (d < 10 ? '0' : '') + d;
       var evs = byDay[k] || [];
-      var plans = showPlans ? plansFor(k) : [];
+      var plans = showPlans ? itemsFor(k) : [];
       var past = k < today;
       var icon = evs.length ? evs[0].icon : '';
       var label = longDate(k) +
@@ -777,6 +994,11 @@
           highlights.push({ date: k, icon: e.icon, text: e.title, kind: e.kind ? 'plan' : 'sky' });
         });
         plans.forEach(function (c) {
+          if (c.seriesId) {
+            // repeating plans are listed once, under the month, not every day
+            if (!seenSeries[c.seriesId]) { seenSeries[c.seriesId] = true; repeatNames.push(c.title); }
+            return;
+          }
           highlights.push({ date: k, icon: c.emoji || '⭐', text: c.title, kind: 'plan', done: c.done });
         });
       }
@@ -790,7 +1012,8 @@
         '<span class="hl-text">' + esc(h.text) + '</span></li>';
     }).join('');
     if (highlights.length > MAX) list += '<li class="hl-more">+ ' + (highlights.length - MAX) + ' more – tap a day to see</li>';
-    if (!highlights.length) {
+    if (repeatNames.length) list += '<li class="hl-repeats"><span aria-hidden="true">🔁</span> Repeats: ' + esc(repeatNames.join(', ')) + '</li>';
+    if (!highlights.length && !repeatNames.length) {
       list = '<li class="hl-more">' + (ui.monthsFilter === 'plans' ? 'Nothing planned yet. Plenty of room!' : 'A quiet month.') + '</li>';
     }
 
@@ -1149,7 +1372,24 @@
     $('#f-title').addEventListener('input', function () { this.removeAttribute('aria-invalid'); });
     $('#f-move-tomorrow').addEventListener('click', function () { moveCard(Sky.addDays(ui.dayKey, 1)); });
     $('#f-move-go').addEventListener('click', function () { moveCard($('#f-move-date').value); });
-    $('#f-delete').addEventListener('click', function () { confirmTwice(this, 'Remove this', 'Tap again to remove', deleteCard); });
+    $('#f-delete').addEventListener('click', function () {
+      var label = ui.editingSeries ? 'Remove all repeats' : 'Remove this';
+      confirmTwice(this, label, ui.editingSeries ? 'Tap again to remove every repeat' : 'Tap again to remove', deleteCard);
+    });
+    $('#f-skip').addEventListener('click', skipDay);
+    $('#f-repeat').addEventListener('change', function () {
+      if (this.value === 'days' && !ui.form.days.length) ui.form.days = [Repeat.dow(ui.dayKey)];
+      renderRepeatFields();
+    });
+    $('#f-days').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-dow]');
+      if (!b) return;
+      var d = +b.dataset.dow, i = ui.form.days.indexOf(d);
+      if (i >= 0) ui.form.days.splice(i, 1); else ui.form.days.push(d);
+      b.setAttribute('aria-pressed', String(i < 0));
+    });
+    $('#f-remind').addEventListener('change', renderRepeatFields);
+    $('#f-time').addEventListener('input', renderRepeatFields);
 
     // Close buttons on any sheet
     $$('[data-close]').forEach(function (b) {
@@ -1215,6 +1455,18 @@
       state.settings.calm = this.checked; save(); applyTheme();
     });
     $('#export-btn').addEventListener('click', exportPlans);
+    $('#notify-btn').addEventListener('click', function () {
+      Timer.unlockAudio();
+      Reminders.ask().then(function (r) {
+        renderSettingsReminders();
+        if (r === 'granted') toast('Pop-up notifications are on ✓');
+      });
+    });
+    $('#notify-test').addEventListener('click', function () { Timer.unlockAudio(); Reminders.test(); });
+    $('#remind-sound').addEventListener('change', function () {
+      state.settings.remindSound = this.checked; save();
+      if (this.checked) Timer.unlockAudio();
+    });
     $('#update-btn').addEventListener('click', function () {
       toast('Checking for updates…');
       var done = function () { location.reload(); };
@@ -1345,6 +1597,18 @@
     $('#settings-dialog').showModal();
   }
 
+  /* ---------- Reminders: everything with a reminder on a day, for everyone ---------- */
+  function collectReminders(key) {
+    var out = [];
+    state.profiles.forEach(function (p) {
+      itemsFor(key, p).forEach(function (it) {
+        if (it.done || it.remind === undefined || it.remind === null || it.remind === '' || !it.time) return;
+        out.push({ uid: p.id + ':' + it.id, title: it.title, emoji: it.emoji, time: it.time, remind: it.remind, person: p.name });
+      });
+    });
+    return out.concat(Home.reminderItems(key));
+  }
+
   /* ---------- Start ---------- */
   function start() {
     applyTheme();
@@ -1354,6 +1618,16 @@
     });
     bind();
     Timer.init();
+    Reminders.init({
+      collect: collectReminders, today: function () { return today; }, addDays: Sky.addDays,
+      settings: function () { return state.settings; }, chime: Timer.chime, esc: esc, toast: toast,
+      peopleCount: function () { return state.profiles.length; }
+    });
+    // Browsers only allow sound after a tap, so get it ready on the first one
+    document.addEventListener('pointerdown', function unlock() {
+      Timer.unlockAudio();
+      document.removeEventListener('pointerdown', unlock);
+    });
     renderHeader();
     showView('day');
     tickClock();

@@ -3,7 +3,7 @@
   When you change any file, bump the version number below AND the
   ?v= numbers in index.html, so everyone's device picks up the new copy.
 */
-var VERSION = 'my-days-v7';
+var VERSION = 'my-days-v8';
 var FILES = [
   './',
   'index.html',
@@ -12,6 +12,8 @@ var FILES = [
   'js/lib/suncalc.js',
   'data/sky-events.js',
   'js/sky.js',
+  'js/repeat.js',
+  'js/reminders.js',
   'js/ideas.js',
   'js/nature.js',
   'js/home.js',
@@ -50,4 +52,15 @@ self.addEventListener('fetch', function (e) {
       });
     })
   );
+});
+
+// Tapping a reminder notification opens (or brings back) My Days
+self.addEventListener('notificationclick', function (e) {
+  e.notification.close();
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (list) {
+    for (var i = 0; i < list.length; i++) {
+      if ('focus' in list[i]) return list[i].focus();
+    }
+    if (self.clients.openWindow) return self.clients.openWindow('./');
+  }));
 });

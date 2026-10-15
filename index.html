@@ -10,7 +10,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="stylesheet" href="css/styles.css?v=7">
+  <link rel="stylesheet" href="css/styles.css?v=8">
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to main content</a>
@@ -279,10 +279,27 @@
       </fieldset>
 
       <details class="more" id="f-more">
-        <summary>Add a time or notes</summary>
+        <summary>Time, repeat, reminder &amp; notes</summary>
         <label class="field">
           <span class="field-label">Time</span>
           <input type="time" id="f-time">
+        </label>
+        <label class="field">
+          <span class="field-label">🔁 Repeat</span>
+          <select id="f-repeat"></select>
+        </label>
+        <div class="field" id="f-days-wrap" hidden>
+          <span class="field-label">Which days?</span>
+          <div class="chips wrap" id="f-days" role="group" aria-label="Days of the week"></div>
+        </div>
+        <label class="field" id="f-until-wrap" hidden>
+          <span class="field-label">Stop repeating after <span class="optional">(optional)</span></span>
+          <input type="date" id="f-until">
+        </label>
+        <label class="field">
+          <span class="field-label">🔔 Remind me</span>
+          <select id="f-remind"></select>
+          <span class="field-hint" id="f-remind-hint" hidden>Reminders need a time.</span>
         </label>
         <label class="field">
           <span class="field-label">Notes</span>
@@ -291,7 +308,8 @@
       </details>
 
       <div class="edit-only" id="f-edit-extras" hidden>
-        <div class="field">
+        <p class="series-info" id="f-series-info" hidden></p>
+        <div class="field" id="f-move-wrap">
           <span class="field-label">Move to another day</span>
           <div class="move-row">
             <button type="button" class="btn small" id="f-move-tomorrow">Tomorrow</button>
@@ -299,7 +317,10 @@
             <button type="button" class="btn small" id="f-move-go">Move</button>
           </div>
         </div>
-        <button type="button" class="link-btn quiet-danger" id="f-delete">Remove this</button>
+        <div class="btn-row">
+          <button type="button" class="btn small" id="f-skip" hidden>Skip just this day</button>
+          <button type="button" class="link-btn quiet-danger" id="f-delete">Remove this</button>
+        </div>
       </div>
 
       <div class="sheet-actions">
@@ -381,6 +402,21 @@
     </section>
 
     <section class="set-section">
+      <h3>🔔 Reminders</h3>
+      <p class="set-help" id="notify-status"></p>
+      <div class="btn-row">
+        <button class="btn" id="notify-btn">Allow pop-up notifications</button>
+        <button class="btn" id="notify-test">Try a reminder</button>
+      </div>
+      <label class="switch-row">
+        <input type="checkbox" id="remind-sound" checked>
+        <span class="switch" aria-hidden="true"></span>
+        <span>Chime for reminders</span>
+      </label>
+      <p class="set-help small">Reminders ring while My Days is open – on screen, in another tab or in the background. They can’t ring if the browser is completely closed.</p>
+    </section>
+
+    <section class="set-section">
       <h3>Keep a copy</h3>
       <p class="set-help">Your plans are saved in this browser only. Save a copy to keep them safe or to move them to another device.</p>
       <div class="btn-row">
@@ -415,6 +451,17 @@
     </form>
   </dialog>
 
+  <!-- ===== Reminder ===== -->
+  <dialog class="alarm" id="remind-dialog" aria-labelledby="remind-heading">
+    <div class="alarm-emoji" aria-hidden="true">🔔</div>
+    <h2 id="remind-heading">Reminder</h2>
+    <ul class="remind-list" id="remind-list"></ul>
+    <div class="alarm-actions">
+      <button class="btn" id="remind-snooze">Snooze 5 min</button>
+      <button class="btn btn-primary btn-big" id="remind-ok">OK</button>
+    </div>
+  </dialog>
+
   <!-- ===== Time's up ===== -->
   <dialog class="alarm" id="alarm-dialog" aria-labelledby="alarm-title">
     <div class="alarm-emoji" aria-hidden="true">⏰</div>
@@ -427,13 +474,15 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="js/lib/suncalc.js?v=7"></script>
-  <script src="data/sky-events.js?v=7"></script>
-  <script src="js/sky.js?v=7"></script>
-  <script src="js/ideas.js?v=7"></script>
-  <script src="js/nature.js?v=7"></script>
-  <script src="js/home.js?v=7"></script>
-  <script src="js/timer.js?v=7"></script>
-  <script src="js/app.js?v=7"></script>
+  <script src="js/lib/suncalc.js?v=8"></script>
+  <script src="data/sky-events.js?v=8"></script>
+  <script src="js/sky.js?v=8"></script>
+  <script src="js/repeat.js?v=8"></script>
+  <script src="js/reminders.js?v=8"></script>
+  <script src="js/ideas.js?v=8"></script>
+  <script src="js/nature.js?v=8"></script>
+  <script src="js/home.js?v=8"></script>
+  <script src="js/timer.js?v=8"></script>
+  <script src="js/app.js?v=8"></script>
 </body>
 </html>

@@ -433,7 +433,7 @@
       (upcoming.length ? '<ul class="event-list">' + upcoming.map(function (a) {
         return '<li class="click-row" data-appt="' + a.id + '" tabindex="0" role="button"><span class="ev-icon" aria-hidden="true">🩺</span><div>' +
           '<div class="ev-date">' + esc(fmtKey(a.date, { weekday: 'short', day: 'numeric', month: 'short' })) + (a.time ? ' · ' + esc(a.time) : '') + '</div>' +
-          '<div class="ev-title">' + esc(a.what) + '</div>' + (a.where ? '<div class="ev-note">' + esc(a.where) + '</div>' : '') + '</div></li>';
+          '<div class="ev-title">' + esc(a.what) + (a.time && a.remind !== null && a.remind !== undefined ? ' <span aria-label="with a reminder">🔔</span>' : '') + '</div>' + (a.where ? '<div class="ev-note">' + esc(a.where) + '</div>' : '') + '</div></li>';
       }).join('') + '</ul>' : '<p class="small-note">No appointments coming up. They’ll show on My Day and in Months ahead.</p>') +
       (past.length ? '<p class="small-note">' + past.length + ' past appointment' + (past.length === 1 ? '' : 's') + '. <button class="link-btn" data-health="clear-past">Clear them</button></p>' : '') +
       '</article>';
@@ -462,15 +462,25 @@
 
   function editAppt(id) {
     var hl = personData().health;
-    var a = hl.appts.filter(function (x) { return x.id === id; })[0] || { date: today(), time: '', what: '', where: '' };
+    var a = hl.appts.filter(function (x) { return x.id === id; })[0] || { date: today(), time: '', what: '', where: '', remind: 60 };
+    var cur = a.remind === undefined || a.remind === null ? '' : String(a.remind);
+    var remindOpts = Reminders.OPTIONS.map(function (o) {
+      return '<option value="' + o.v + '"' + (o.v === cur ? ' selected' : '') + '>' + esc(o.label) + '</option>';
+    }).join('');
     var body = '<label class="field"><span class="field-label">What is it?</span><input type="text" id="hd-what" maxlength="60" value="' + esc(a.what) + '" placeholder="e.g. Dentist check-up"></label>' +
       '<div class="two-col"><label class="field"><span class="field-label">Day</span><input type="date" id="hd-date" value="' + esc(a.date) + '"></label>' +
       '<label class="field"><span class="field-label">Time <span class="optional">(optional)</span></span><input type="time" id="hd-time" value="' + esc(a.time || '') + '"></label></div>' +
-      '<label class="field"><span class="field-label">Where <span class="optional">(optional)</span></span><input type="text" id="hd-where" maxlength="80" value="' + esc(a.where || '') + '" placeholder="e.g. Taunton dental surgery"></label>';
+      '<label class="field"><span class="field-label">Where <span class="optional">(optional)</span></span><input type="text" id="hd-where" maxlength="80" value="' + esc(a.where || '') + '" placeholder="e.g. Taunton dental surgery"></label>' +
+      '<label class="field"><span class="field-label">🔔 Remind me</span><select id="hd-remind">' + remindOpts + '</select>' +
+      '<span class="field-hint">Reminders need a time.</span></label>';
     openDialog(a.id ? 'Change appointment' : 'Add an appointment', body, function () {
       var what = $('#hd-what').value.trim(), date = $('#hd-date').value;
       if (!what || !date) { api.toast('Add what it is and the day'); return false; }
-      var rec = { id: a.id || api.uid(), what: what, date: date, time: $('#hd-time').value, where: $('#hd-where').value.trim() };
+      var rv = $('#hd-remind').value;
+      var rec = { id: a.id || api.uid(), what: what, date: date, time: $('#hd-time').value, where: $('#hd-where').value.trim(),
+        remind: rv === '' ? null : +rv };
+      if (rec.remind !== null && !rec.time) { api.toast('Add a time so the reminder knows when to ring'); return false; }
+      if (rec.remind !== null && Reminders.permission() === 'default') Reminders.ask();
       hl.appts = hl.appts.filter(function (x) { return x.id !== rec.id; }).concat([rec]);
       return true;
     }, a.id ? function () { hl.appts = hl.appts.filter(function (x) { return x.id !== a.id; }); } : null);
@@ -751,6 +761,19 @@
     render: render,
     personalEvents: personalEvents,
     dayNotes: dayNotes,
+    // Appointments with reminders on a day, for everyone on this device
+    reminderItems: function (key) {
+      var out = [];
+      api.state().profiles.forEach(function (p) {
+        var d = personData(p);
+        d.health.appts.forEach(function (a) {
+          if (a.date === key && a.time && a.remind !== null && a.remind !== undefined) {
+            out.push({ uid: p.id + ':appt:' + a.id, title: a.what, emoji: '🩺', time: a.time, remind: a.remind, person: p.name, where: a.where });
+          }
+        });
+      });
+      return out;
+    },
     stopBreathing: function () { clearInterval(breatheTimer); },
     forgetPerson: function (id) { if (api.state().home && api.state().home.people) delete api.state().home.people[id]; }
   };

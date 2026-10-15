@@ -678,3 +678,18 @@ select {
 .calm *, .calm *::before, .calm *::after { animation: none !important; transition: none !important; }
 
 .visually-hidden { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- Repeats & reminders ---------- */
+.meta.repeat { background: var(--sky-soft); color: var(--ink); }
+.meta.remind { background: var(--sun-soft); color: var(--ink); }
+.field-hint { display: block; margin-top: 6px; font-size: .88rem; color: var(--ink-2); }
+.series-info { background: var(--sky-soft); border-radius: 12px; padding: 10px 12px; margin: 0 0 12px; font-weight: 600; font-size: .95rem; }
+#f-edit-extras .btn-row { align-items: center; }
+.remind-list { list-style: none; padding: 0; margin: 0 0 20px; display: grid; gap: 10px; text-align: left; }
+.remind-list li { display: flex; gap: 12px; align-items: center; background: var(--bg); border-radius: 16px; padding: 12px 14px; }
+.remind-emoji { font-size: 2rem; line-height: 1; }
+.remind-title { font-weight: 800; font-size: 1.1rem; }
+.remind-when { color: var(--ink-2); font-size: .95rem; }
+#remind-dialog h2 { margin-bottom: 14px; }
+.set-help.small { font-size: .88rem; margin-top: 8px; }
+.hl-repeats { font-size: .88rem; font-weight: 600; color: var(--ink-2); background: var(--sky-soft); border-radius: 10px; padding: 6px 10px; margin-top: 4px; }
